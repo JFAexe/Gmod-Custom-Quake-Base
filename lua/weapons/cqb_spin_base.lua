@@ -1,5 +1,7 @@
 AddCSLuaFile()
 
+CQB_register_base('cqb_spin_base')
+
 SWEP.Base				   	= 'cqb_base'
 
 SWEP.Category			   	= 'S T O L E N  C O D E ™'
@@ -9,26 +11,50 @@ SWEP.Spawnable			  	= false
 
 SWEP.Author 				= 'JFAexe'
 
--- My spinny boi
 SWEP.SpinSnd  				= Sound('weapons/galil/galil_boltpull.wav')
 SWEP.MaxSpin  				= 10
 SWEP.SpinSpd  				= 10
 
-local _spin 				= 0
 
-function SWEP:CustomPrecache()
-	util.PrecacheSound(self.SpinSnd)
-end
-
-function SWEP:AddDataTables()
+--[[------------------------------------------------------------------------------------------------------
+	Base
+--------------------------------------------------------------------------------------------------------]]
+function SWEP:SetupDataTables()
 	self:AddNWVar('Float', 'Spin')
 	self:AddNWVar('Float', 'Delay')
+
+	self:AddDataTables()
 end
 
-function SWEP:OnDeploy()
-	self:SetDelay(CurTime() + self.Owner:GetViewModel():SequenceDuration())
+function SWEP:Precache()
+	util.PrecacheSound(self.Primary.SoundData.snd)
+	util.PrecacheModel(self.ViewModel)
+	util.PrecacheModel(self.WorldModel)
+
+	util.PrecacheSound(self.SpinSnd)
+
+	self:CustomPrecache()
 end
 
+function SWEP:Deploy()
+	self:SendWeaponAnim(ACT_VM_DRAW)
+
+	local delay = CurTime() + self.Owner:GetViewModel():SequenceDuration()
+
+	self:SetNextPrimaryFire(delay)
+	self:SetNextSecondaryFire(delay)
+
+	self:SetDelay(delay)
+	
+	self:OnDeploy()
+
+	return true
+end
+
+
+--[[------------------------------------------------------------------------------------------------------
+	Functionality
+--------------------------------------------------------------------------------------------------------]]
 function SWEP:CanPrimaryAttack()
 	local data 	= self.Primary
 	local delay = CurTime() + data.Delay
@@ -55,18 +81,51 @@ function SWEP:CanPrimaryAttack()
 	return self:GetSpin() == self.MaxSpin
 end
 
-function SWEP:WeaponThink()
-	self.ExtraText = 'Spin: ' .. math.Round(_spin / self.MaxSpin * 100)  .. '%'
+local _spin = 0
 
-	if self:GetDelay() > CurTime() then return end
+function SWEP:Think()
+	self:WeaponThink()
+
+	local data, owner = self.Primary, self:GetOwner()
+
+	if not data.AmmoLimit then return end
+
+	if owner:GetAmmoCount(self:GetPrimaryAmmoType()) > data.MaxAmmo then
+		owner:SetAmmo(data.MaxAmmo, data.Ammo)
+	end
+
+	self.ExtraText = 'Spin: ' .. math.Round(_spin / self.MaxSpin * 100)  .. '%'
 
 	local FT = FrameTime()
 
-	if self.Owner:KeyDown(IN_ATTACK) then
+	self:SetSpin(_spin)
+
+	if self:GetDelay() > CurTime() then
+		_spin = math.Approach(_spin, 0, self.SpinSpd * 0.25 * FT)
+
+		return
+	end
+
+	if owner:KeyDown(IN_ATTACK) then
 		_spin = math.Approach(_spin, self.MaxSpin, self.SpinSpd * FT)
 	else
 		_spin = math.Approach(_spin, 0, self.SpinSpd * 0.25 * FT)
 	end
+end
 
-	self:SetSpin(_spin)
+
+--[[------------------------------------------------------------------------------------------------------
+	HUD
+--------------------------------------------------------------------------------------------------------]]
+if CLIENT then
+	function SWEP:CustomAmmoDisplay()
+		self.AmmoDisplay = self.AmmoDisplay or {}
+
+		self.AmmoDisplay.Draw = true
+
+		self.AmmoDisplay.PrimaryClip = self:Ammo1()
+		self.AmmoDisplay.PrimaryAmmo = math.Round(_spin / self.MaxSpin * 100)
+
+		return self.AmmoDisplay
+	end
 end

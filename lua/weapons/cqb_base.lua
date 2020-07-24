@@ -2,6 +2,8 @@
 
 AddCSLuaFile()
 
+CQB_register_base('cqb_base')
+
 local render, table, pairs  = render, table, pairs
 local Clamp, Rand	= math.Clamp, math.Rand
 
@@ -320,7 +322,7 @@ end
 	VM
 --------------------------------------------------------------------------------------------------------]]
 local VMAnimation, VMBob		= 0, 0
-local SwayMod, LeanMod, Lean	= 3, 1, 1
+local SwayMod, LeanMod, Lean	= 3, 1.4, 1
 local SwayAng, SwayAngFin		= Angle(), Angle()
 
 function SWEP:SwayVMPos(pos, ang, FT)
@@ -467,7 +469,7 @@ if CLIENT then
 			for i = 0, math.Round(self.Primary.HorizSpread * 2) do cross = cross .. ' ' end
 
 			local _style = GetConVar('cqb_hud_crosshairstyle'):GetInt()
-			ShadowText(_cs.l[_style] .. cross .. _cs.r[_style], 'HUDMicro', _swc, _shc - 2)
+			ShadowText(_cs.l[_style] .. cross .. _cs.r[_style], 'CQBMicro', _swc, _shc - 2)
 		end
 
 		if not GetConVar('cqb_hud_enabled'):GetBool() then return end
@@ -483,21 +485,21 @@ if CLIENT then
 		local mid = _sh - _shc * (_y + 0.07)
 		local bot = _sh - _shc * (_y)
 
-		ShadowText(owner:Nick(), 'HUDSmall', fcl, top)
-		ShadowText(_format(owner:Health()), 'HUDLarge', fcl, mid)
+		ShadowText(owner:Nick(), 'CQBSmall', fcl, top)
+		ShadowText(_format(owner:Health()), 'CQBLarge', fcl, mid)
 
-		ShadowText('Armor', 'HUDSmall', tcl, top)
-		ShadowText(_format(owner:Armor()), 'HUDLarge', tcl, mid)
+		ShadowText('Armor', 'CQBSmall', tcl, top)
+		ShadowText(_format(owner:Armor()), 'CQBLarge', tcl, mid)
 
-		ShadowText(self.PrintName, 'HUDSmall', _swc, top)
-		ShadowText(self.Owner:GetAmmoCount(self.Primary.Ammo), 'HUDLarge', _swc, mid)
-		ShadowText(self.Primary.Ammo, 'HUDSmall', _swc, bot)
+		ShadowText(self.PrintName, 'CQBMedium', _swc, top)
+		ShadowText(self.Owner:GetAmmoCount(self.Primary.Ammo), 'CQBLarge', _swc, mid)
+		ShadowText(self.Primary.Ammo, 'CQBSmall', _swc, bot)
 
-		ShadowText(self.ExtraText or '', 'HUDSmall', _swc, cus)
+		ShadowText(self.ExtraText or '', 'CQBSmall', _swc, cus)
 	end
 
 	function SWEP:DrawWeaponSelection(x, y, wide, tall, alpha)
-		ShadowText(self.PrintName, 'HUDSmall', x + wide / 2, y + tall / 2 - 10)
+		ShadowText(self.PrintName, 'CQBSmall', x + wide / 2, y + tall / 2 - 10)
 	end
 
 	function SWEP:CustomAmmoDisplay()

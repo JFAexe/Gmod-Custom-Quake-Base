@@ -1,13 +1,15 @@
 AddCSLuaFile()
 
+-- CQB_add_sound(name, path)
+
+if CLIENT then
+	killicon.AddFont('cqb_template', 'CQBKill', 'S T O L E N  C O D E ™', Color(245, 255, 0, 255))
+end
+
 SWEP.Base				   	= 'cqb_base'
 
 SWEP.Category			   	= 'S T O L E N  C O D E ™'
 SWEP.PrintName			  	= 'cqb_template'
-
-if CLIENT then
-	killicon.AddFont('cqb_template', 'HUDSmall', SWEP.PrintName, Color(255, 255, 255, 255))
-end
 
 SWEP.Author 				= 'JFAexe'
 
@@ -92,6 +94,12 @@ SWEP.SpeedMultiply		  	= 1
 SWEP.ExtraText			  	= ''
 
 SWEP.DryfireSnd			 	= Sound('weapons/mac10/mac10_boltpull.wav')
+
+
+-- Spin base only
+SWEP.SpinSnd  				= Sound('weapons/galil/galil_boltpull.wav')
+SWEP.MaxSpin  				= 10
+SWEP.SpinSpd  				= 10
 
 
 -- Callbacks
