@@ -2,23 +2,31 @@ AddCSLuaFile()
 
 CQB_register_base('cqb_spin_base')
 
-SWEP.Base				   	= 'cqb_base'
+SWEP.Base					= 'cqb_base'
 
-SWEP.Category			   	= 'S T O L E N  C O D E ™'
-SWEP.PrintName			  	= 'cqb_spin_base'
+SWEP.Category				= 'S T O L E N  C O D E ™'
+SWEP.PrintName				= 'cqb_spin_base'
 
-SWEP.Spawnable			  	= false
+SWEP.Author					= 'JFAexe'
 
-SWEP.Author 				= 'JFAexe'
+SWEP.Spawnable				= false
 
-SWEP.SpinSnd  				= Sound('weapons/galil/galil_boltpull.wav')
-SWEP.MaxSpin  				= 10
-SWEP.SpinSpd  				= 10
+SWEP.Primary.SpinData		= {
+	snd = Sound('weapons/galil/galil_boltpull.wav'),
+	vol = 45,
+	pit = 80
+}
+
+SWEP.Primary.MaxSpin		= 10
+SWEP.Primary.SpinSpd		= 10
 
 
 --[[------------------------------------------------------------------------------------------------------
 	Base
 --------------------------------------------------------------------------------------------------------]]
+SWEP.CurSpin = 0
+SWEP.Percent = 0
+
 function SWEP:SetupDataTables()
 	self:AddNWVar('Float', 'Spin')
 	self:AddNWVar('Float', 'Delay')
@@ -27,11 +35,14 @@ function SWEP:SetupDataTables()
 end
 
 function SWEP:Precache()
-	util.PrecacheSound(self.Primary.SoundData.snd)
+	local data	= self.Primary
+
+	util.PrecacheSound(data.SoundData.snd)
+	util.PrecacheSound(data.DryfireData.snd)
+	util.PrecacheSound(data.SpinData.snd)
+
 	util.PrecacheModel(self.ViewModel)
 	util.PrecacheModel(self.WorldModel)
-
-	util.PrecacheSound(self.SpinSnd)
 
 	self:CustomPrecache()
 end
@@ -39,13 +50,12 @@ end
 function SWEP:Deploy()
 	self:SendWeaponAnim(ACT_VM_DRAW)
 
-	local delay = CurTime() + self.Owner:GetViewModel():SequenceDuration()
+	local delay = CurTime() + self:GetOwner():GetViewModel():SequenceDuration()
 
-	self:SetNextPrimaryFire(delay)
-	self:SetNextSecondaryFire(delay)
+	self:AddDelay(delay)
 
 	self:SetDelay(delay)
-	
+
 	self:OnDeploy()
 
 	return true
@@ -56,60 +66,51 @@ end
 	Functionality
 --------------------------------------------------------------------------------------------------------]]
 function SWEP:CanPrimaryAttack()
-	local data 	= self.Primary
-	local delay = CurTime() + data.Delay
+	if not self:AmmoCheck() then return false end
 
-	if (self:Ammo1() <= 0 and self:Ammo1() < data.TakeAmmo) then
-		self:EmitCustomSound(self.DryfireSnd, 70, 120)
+	local data	= self.Primary
+	local spin	= data.SpinData
+	local owner	= self:GetOwner()
+	local delay	= CurTime() + data.Delay
 
-		self:SetNextPrimaryFire(delay)
-		self:SetNextSecondaryFire(delay)
+	if owner:KeyDown(IN_ATTACK) and self:GetSpin() < data.MaxSpin then
+		self:AddDelay(delay)
 
-		return
+		self:EmitCustomSound(spin.snd, spin.vol, spin.pit)
+
+		local vm = owner:GetViewModel()
+		local anim = vm:SelectWeightedSequence(ACT_VM_IDLE)
+
+		vm:SendViewModelMatchingSequence(anim)
 	end
 
-	if self.Owner:KeyDown(IN_ATTACK) and self:GetSpin() < self.MaxSpin then
-
-		local delay = CurTime() + data.Delay
-
-		self:SetNextPrimaryFire(delay)
-		self:SetNextSecondaryFire(delay)
-
-		self:EmitCustomSound(self.SpinSnd, 45, 80)
-	end
-
-	return self:GetSpin() == self.MaxSpin
+	return self:GetSpin() == data.MaxSpin
 end
-
-local _spin = 0
 
 function SWEP:Think()
 	self:WeaponThink()
 
-	local data, owner = self.Primary, self:GetOwner()
+	self:LimitAmmo()
 
-	if not data.AmmoLimit then return end
+	local data = self.Primary
 
-	if owner:GetAmmoCount(self:GetPrimaryAmmoType()) > data.MaxAmmo then
-		owner:SetAmmo(data.MaxAmmo, data.Ammo)
-	end
-
-	self.ExtraText = 'Spin: ' .. math.Round(_spin / self.MaxSpin * 100)  .. '%'
+	self.Percent	= math.Round(self.CurSpin / data.MaxSpin * 100)
+	self.ExtraText	= 'Spin: ' .. self.Percent .. '%'
 
 	local FT = FrameTime()
 
-	self:SetSpin(_spin)
+	self:SetSpin(self.CurSpin)
 
 	if self:GetDelay() > CurTime() then
-		_spin = math.Approach(_spin, 0, self.SpinSpd * 0.25 * FT)
+		self.CurSpin = math.Approach(self.CurSpin, 0, data.SpinSpd * 0.25 * FT)
 
 		return
 	end
 
-	if owner:KeyDown(IN_ATTACK) then
-		_spin = math.Approach(_spin, self.MaxSpin, self.SpinSpd * FT)
+	if self:GetOwner():KeyDown(IN_ATTACK) then
+		self.CurSpin = math.Approach(self.CurSpin, data.MaxSpin, data.SpinSpd * FT)
 	else
-		_spin = math.Approach(_spin, 0, self.SpinSpd * 0.25 * FT)
+		self.CurSpin = math.Approach(self.CurSpin, 0, data.SpinSpd * 0.25 * FT)
 	end
 end
 
@@ -124,7 +125,7 @@ if CLIENT then
 		self.AmmoDisplay.Draw = true
 
 		self.AmmoDisplay.PrimaryClip = self:Ammo1()
-		self.AmmoDisplay.PrimaryAmmo = math.Round(_spin / self.MaxSpin * 100)
+		self.AmmoDisplay.PrimaryAmmo = self.Percent
 
 		return self.AmmoDisplay
 	end

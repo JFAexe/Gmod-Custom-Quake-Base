@@ -9,6 +9,8 @@ It was designed to feel like old school fps games like Quake / Doom.
 * Version 1.1 July 23, 2020:
   Movement, Callbacks, Spin base
 * Version 1.2 July 24, 2020:
-  Better Spin base, Auto bhop, autorun changes
+  Better Spin base, autorun changes
+* Version 1.3 July 26, 2020:
+  Burst base, preparations for Melee base
 
 ##### *If you want to contribute please keep your code clean.*

@@ -1,11 +1,11 @@
--- Clean code, bruh
+-- Clean code, bruh (still strying to fix github's tab breaking)
 
 AddCSLuaFile()
 
 CQB_register_base('cqb_base')
 
-local render, table, pairs  = render, table, pairs
-local Clamp, Rand	= math.Clamp, math.Rand
+local render, table, pairs = render, table, pairs
+local Clamp, Rand = math.Clamp, math.Rand
 
 SWEP.Base					= 'weapon_base'
 
@@ -29,6 +29,12 @@ SWEP.Primary.SoundData		= {
 	vol = 75,
 	pit = 90
 }
+SWEP.Primary.DryfireData	= {
+	snd = Sound('weapons/mac10/mac10_boltpull.wav'),
+	vol = 70,
+	pit = 150
+}
+
 SWEP.Primary.Damage			= 10
 SWEP.Primary.NumShots		= 1
 SWEP.Primary.Automatic		= true
@@ -59,19 +65,21 @@ SWEP.UseHands				= false
 SWEP.ViewModel				= 'models/weapons/cstrike/c_rif_ak47.mdl'
 SWEP.VMPos					= Vector(0, 0, 0)
 SWEP.VMAng					= Angle(0, 0, 0)
+SWEP.AltVMPos				= Vector(0, 0, 0)
+SWEP.AltVMAng				= Angle(0, 0, 0)
 
 SWEP.HoldType				= 'ar2'
 SWEP.WorldModel				= 'models/weapons/w_rif_ak47.mdl'
 SWEP.WorldModelData			= {
 	Pos	= {
-		Up 		= 0,
-		Right 	= 0,
-		Forward = 0,
+		Up		= 0,
+		Right	= 0,
+		Forward	= 0,
 	},
-	Ang = {
-		Up 		= 0,
-		Right 	= 0,
-		Forward = 180
+	Ang	= {
+		Up		= 0,
+		Right	= 0,
+		Forward	= 180
 	},
 	Scale	= 1
 }
@@ -92,24 +100,27 @@ SWEP.SpeedMultiply			= 1
 
 SWEP.ExtraText				= ''
 
-SWEP.DryfireSnd				= Sound('weapons/mac10/mac10_boltpull.wav')
-
 
 --[[------------------------------------------------------------------------------------------------------
 	Base
 --------------------------------------------------------------------------------------------------------]]
+function SWEP:AddDelay(delay)
+	self:SetNextPrimaryFire(delay)
+	self:SetNextSecondaryFire(delay)
+end
+
 function SWEP:EmitCustomSound(sound, volume, pitch)
 	self:EmitSound(sound, volume, pitch, 1, CHAN_WEAPON)
 end
 
-SWEP.DataTableReserve	= {
-	['String'] 	= 0,
-	['Bool'] 	= 0,
-	['Float'] 	= 0,
-	['Int'] 	= 0,
-	['Vector'] 	= 0,
-	['Angle'] 	= 0,
-	['Entity'] 	= 0
+SWEP.DataTableReserve = {
+	['String']	= 0,
+	['Bool']	= 0,
+	['Float']	= 0,
+	['Int']		= 0,
+	['Vector']	= 0,
+	['Angle']	= 0,
+	['Entity']	= 0
 }
 
 function SWEP:AddNWVar(type, variable)
@@ -129,10 +140,14 @@ function SWEP:AddDataTables()
 end
 
 function SWEP:Precache()
-	util.PrecacheSound(self.Primary.SoundData.snd)
+	local data	= self.Primary
+
+	util.PrecacheSound(data.SoundData.snd)
+	util.PrecacheSound(data.DryfireData.snd)
+
 	util.PrecacheModel(self.ViewModel)
 	util.PrecacheModel(self.WorldModel)
-	
+
 	self:CustomPrecache()
 end
 
@@ -159,11 +174,10 @@ end
 function SWEP:Deploy()
 	self:SendWeaponAnim(ACT_VM_DRAW)
 
-	local delay = CurTime() + self.Owner:GetViewModel():SequenceDuration()
+	local delay = CurTime() + self:GetOwner():GetViewModel():SequenceDuration()
 
-	self:SetNextPrimaryFire(delay)
-	self:SetNextSecondaryFire(delay)
-	
+	self:AddDelay(delay)
+
 	self:OnDeploy()
 
 	return true
@@ -175,7 +189,7 @@ end
 
 function SWEP:Holster()
 	self:HolsterSCK()
-	
+
 	self:OnHolster()
 
 	return true
@@ -194,39 +208,54 @@ end
 	Functionality
 --------------------------------------------------------------------------------------------------------]]
 function SWEP:CanPrimaryAttack()
+	return self:AmmoCheck()
+end
+
+function SWEP:AmmoCheck()
+	local data	= self.Primary
+	local dry	= data.DryfireData
+	local delay	= CurTime() + data.Delay
+
+	if self:Ammo1() <= 0 and self:Ammo1() < data.TakeAmmo then
+		self:EmitCustomSound(dry.snd, dry.vol, dry.pit)
+
+		self:AddDelay(delay)
+
+		return false
+	end
+
 	return true
 end
 
 function SWEP:PrimaryAttack()
 	if not self:CanPrimaryAttack() then return end
 
-	local data  = self.Primary
-	local sound = data.SoundData
-	local owner = self:GetOwner()
-	local delay = CurTime() + data.Delay
+	self:Attack()
 
-	if (self:Ammo1() <= 0 and self:Ammo1() < data.TakeAmmo) then
-		self:EmitCustomSound(self.DryfireSnd, 70, 120)
+	return
+end
 
-		self:SetNextPrimaryFire(delay)
-		self:SetNextSecondaryFire(delay)
+function SWEP:Attack()
+	local data	= self.Primary
+	local sound	= data.SoundData
+	local owner	= self:GetOwner()
+	local delay	= CurTime() + data.Delay
 
-		return
+	if IsFirstTimePredicted() then
+		self:EmitCustomSound(sound.snd, sound.vol, sound.pit)
+
+		for i = 1, data.NumShots do self:ShootBullet() end
 	end
 
-	self:EmitCustomSound(sound.snd, sound.vol, sound.pit)
-
-	for i = 1, data.NumShots do self:ShootBullet() end
-
-	self:SetNextPrimaryFire(delay)
-	self:SetNextSecondaryFire(delay)
 	self:TakePrimaryAmmo(data.TakeAmmo)
+	self:AddDelay(delay)
+
+	self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
+
+	owner:SetAnimation(PLAYER_ATTACK1)
 
 	owner:ViewPunchReset()
 	owner:ViewPunch(Angle(Rand(-data.Recoil, -data.Recoil * 0.75), 0, 0))
-
-	owner:SetAnimation(PLAYER_ATTACK1)
-	self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
 end
 
 function SWEP:ShootBullet()
@@ -234,28 +263,26 @@ function SWEP:ShootBullet()
 	local data  = self.Primary
 
 	local Vec = owner:GetAimVector():Angle()
-	Vec:RotateAroundAxis(Vec:Right(),   Rand(-data.VertSpread, data.VertSpread))
-	Vec:RotateAroundAxis(Vec:Up(),	  Rand(-data.HorizSpread, data.HorizSpread))
-	Vec:RotateAroundAxis(Vec:Forward(), 0)
+	Vec:RotateAroundAxis(Vec:Right(),	Rand(-data.VertSpread, data.VertSpread))
+	Vec:RotateAroundAxis(Vec:Up(),		Rand(-data.HorizSpread, data.HorizSpread))
+	Vec:RotateAroundAxis(Vec:Forward(),	0)
 
 	local bullet		= {}
-	bullet.Damage	   = data.Damage
+	bullet.Damage		= data.Damage
 	bullet.Force		= data.Force
-	bullet.Tracer	   = 1
-	bullet.Num		  = 1
-	bullet.Src		  = owner:GetShootPos()
-	bullet.Dir		  = owner:GetAimVector() + Vec:Forward()
-	bullet.Spread	   = Vector(0, 0, 0)
-	bullet.TracerName   = self.TracerEffect
-	bullet.Callback	= function(attacker, tr, damage)
+	bullet.Tracer		= 1
+	bullet.Num			= 1
+	bullet.Src			= owner:GetShootPos()
+	bullet.Dir			= owner:GetAimVector() + Vec:Forward()
+	bullet.Spread		= Vector(0, 0, 0)
+	bullet.TracerName	= self.TracerEffect
+	bullet.Callback		= function(attacker, tr, damage)
 		damage:SetDamageType(data.DamageType or DMG_BULLET) -- bruh
 	end
 
 	owner:FireBullets(bullet)
 
-	if self.Heavy then
-		owner:SetVelocity(owner:GetForward() * (data.Force * -100))
-	end
+	if self.Heavy then owner:SetVelocity(owner:GetForward() * (data.Force * -100)) end
 end
 
 function SWEP:SecondaryAttack()
@@ -269,6 +296,14 @@ end
 function SWEP:Think()
 	self:WeaponThink()
 
+	self:LimitAmmo()
+end
+
+function SWEP:WeaponThink()
+	return
+end
+
+function SWEP:LimitAmmo()
 	local data, owner = self.Primary, self:GetOwner()
 
 	if not data.AmmoLimit then return end
@@ -278,27 +313,23 @@ function SWEP:Think()
 	end
 end
 
-function SWEP:WeaponThink()
-	return
-end
-
 
 --[[------------------------------------------------------------------------------------------------------
 	Effects
 --------------------------------------------------------------------------------------------------------]]
 function SWEP:FireAnimationEvent(pos, ang, event, name)
-	local Shells 	= {
-		[20]		= true,
-		[21] 		= true,
-		[6001] 		= true
+	local Shells = {
+		[20]	= true,
+		[21]	= true,
+		[6001]	= true
 	}
 
-	local Muzzles	= {
-		[5001]	  = true,
-		[5003]	  = true,
-		[5011]	  = true,
-		[5021]	  = true,
-		[5031]	  = true 
+	local Muzzles = {
+		[5001]	= true,
+		[5003]	= true,
+		[5011]	= true,
+		[5021]	= true,
+		[5031]	= true 
 	}
 
 	if Shells[event] then return self.DisableShells end
@@ -306,7 +337,7 @@ function SWEP:FireAnimationEvent(pos, ang, event, name)
 	if Muzzles[event] then
 		if self.XMuzzleflash then
 			local ef = EffectData()
-			ef:SetEntity(self.Owner:GetViewModel())
+			ef:SetEntity(self:GetOwner():GetViewModel())
 			ef:SetAttachment(math.floor((event - 4991) / 10))
 			ef:SetScale(self.XMuzzleflashSize)
 
@@ -344,12 +375,12 @@ function SWEP:SwayVMPos(pos, ang, FT)
 		Lean = Lerp(Clamp(FT * 4, 0, 1), Lean, 0)
 	end
 
-	SwayAngFin  = LerpAngle(Clamp(FT * 4, 0, 1), SwayAngFin, angdelta * (self.ViewModelFlip and -1 or 1))
-	SwayAng	 = owner:EyeAngles()
+	SwayAngFin	= LerpAngle(Clamp(FT * 4, 0, 1), SwayAngFin, angdelta * (self.ViewModelFlip and -1 or 1))
+	SwayAng		= owner:EyeAngles()
 
-	ang:RotateAroundAxis(ang:Right(),   -SwayAngFin.p * SwayMod)
-	ang:RotateAroundAxis(ang:Up(),	  	SwayAngFin.y *  SwayMod)
-	ang:RotateAroundAxis(ang:Forward(), SwayAngFin.y *  SwayMod)
+	ang:RotateAroundAxis(ang:Right(),	-SwayAngFin.p	* SwayMod)
+	ang:RotateAroundAxis(ang:Up(),		SwayAngFin.y	* SwayMod)
+	ang:RotateAroundAxis(ang:Forward(),	SwayAngFin.y	* SwayMod)
 
 	pos = pos + ang:Right() * SwayAngFin.y * SwayMod / 2 + ang:Up() * SwayAngFin.p * SwayMod / 2
 	ang = ang + Angle(0, 0, Lean * 4)
@@ -358,17 +389,17 @@ function SWEP:SwayVMPos(pos, ang, FT)
 end
 
 function SWEP:DoVMPos(pos, ang)
-	local bool  = GetConVar('cqb_altpos'):GetBool()
-	local tblp   = bool and self.AltVMPos or self.VMPos
-	local tbla   = bool and self.AltVMAng or self.VMAng
+	local bool	= GetConVar('cqb_altpos'):GetBool()
+	local tblp	= bool and self.AltVMPos or self.VMPos
+	local tbla	= bool and self.AltVMAng or self.VMAng
 
-	ang:RotateAroundAxis(ang:Right(),   tbla.p)
+	ang:RotateAroundAxis(ang:Right(),	tbla.p)
 	ang:RotateAroundAxis(ang:Up(),		tbla.y)
-	ang:RotateAroundAxis(ang:Forward(), tbla.r)
+	ang:RotateAroundAxis(ang:Forward(),	tbla.r)
 
-	pos = pos + ang:Forward() * tblp.y
-	pos = pos + ang:Right()   * tblp.x
-	pos = pos + ang:Up()	  * tblp.z
+	pos = pos + ang:Forward()	* tblp.y
+	pos = pos + ang:Right()		* tblp.x
+	pos = pos + ang:Up()		* tblp.z
 
 	return pos, ang
 end
@@ -379,7 +410,7 @@ function SWEP:GetViewModelPosition(pos, ang)
 	if not owner:IsValid() then return pos, ang end
 
 	local FT		= RealFrameTime()
-	local CalcVel   = Clamp(owner:GetVelocity():Length() / 600, 0 , 3) / self.SpeedMultiply
+	local CalcVel	= Clamp(owner:GetVelocity():Length() / 600, 0 , 3) / self.SpeedMultiply
 
 	if owner:OnGround() then
 		VMAnimation = Lerp(FT * 4, VMAnimation, math.sin(CurTime() * 8) * CalcVel)
@@ -389,8 +420,8 @@ function SWEP:GetViewModelPosition(pos, ang)
 
 	pos = pos + ang:Forward() * VMAnimation * 5
 
-	pos, ang	= self:DoVMPos(pos, ang)
-	pos, ang	= self:SwayVMPos(pos, ang, FT)
+	pos, ang = self:DoVMPos(pos, ang)
+	pos, ang = self:SwayVMPos(pos, ang, FT)
 
 	return pos, ang
 end
@@ -398,11 +429,23 @@ end
 function SWEP:PreDrawViewModel(vm)
 	render.PushFilterMag(TEXFILTER.POINT)
 	render.PushFilterMin(TEXFILTER.POINT)
+
+	self:OnPreDrawViewModel(vm)
 end
-	
+
+function SWEP:OnPreDrawViewModel(vm)
+	return
+end
+
 function SWEP:PostDrawViewModel(vm)
 	render.PopFilterMag()
 	render.PopFilterMin()
+
+	self:OnPostDrawViewModel(vm)
+end
+
+function SWEP:OnPostDrawViewModel(vm)
+	return
 end
 
 
@@ -432,74 +475,55 @@ end
 	HUD
 --------------------------------------------------------------------------------------------------------]]
 if CLIENT then
-	local _sw, _sh	  = ScrW(), ScrH()
-	local _swc, _shc	= _sw * 0.5, _sh * 0.5
+	function SWEP:DrawCrosshair()
+		if not GetConVar('cqb_hud_crosshair'):GetBool() then return end
 
-	local SimpleText	= draw.SimpleText
+		local styles   = {
+			l   = { '-', '~', ':', '[', '(', '{', '<', '>', '|', '/', '\\' },
+			r   = { '-', '~', ':', ']', ')', '}', '>', '<', '|', '\\', '/' },
+		}
 
-	local ColBG = Color(0, 0, 0, 200)
-	local ColWH = Color(255, 255, 255)
+		local cross = ' '
 
-	local function _format(var, max)
-		local max = max or 999
-	
-		return (var > max and max) or var
+		for i = 0, math.Round(self.Primary.HorizSpread * 2) do cross = cross .. ' ' end
+
+		local _style = GetConVar('cqb_hud_crosshairstyle'):GetInt()
+		CQB_ShadowText(styles.l[_style] .. cross .. styles.r[_style], 'CQBMicro', CQB_swc, CQB_shc - 2)
 	end
-
-	local function ShadowText(text, font, x, y)
-		SimpleText(text, font, x + 2, y + 2, ColBG, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-		SimpleText(text, font, x, y, ColWH, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-	end
-
-	hook.Add('OnScreenSizeChanged', 'cqb_unfuck_hud', function(w, h)
-		_sw, _sh	= ScrW(), ScrH()
-		_swc, _shc  = _sw * 0.5, _sh * 0.5
-	end)
 
 	function SWEP:DrawHUD()
 		local owner = self:GetOwner()
 
-		local _cs   = {
-			l   = { '-', '~', ':', '[', '(', '{', '<', '>', },
-			r   = { '-', '~', ':', ']', ')', '}', '>', '<', },
-		}
-
-		local cross = ' '
-		if GetConVar('cqb_hud_crosshair'):GetBool() then
-			for i = 0, math.Round(self.Primary.HorizSpread * 2) do cross = cross .. ' ' end
-
-			local _style = GetConVar('cqb_hud_crosshairstyle'):GetInt()
-			ShadowText(_cs.l[_style] .. cross .. _cs.r[_style], 'CQBMicro', _swc, _shc - 2)
-		end
+		self:DrawCrosshair()
 
 		if not GetConVar('cqb_hud_enabled'):GetBool() then return end
 
-		local _x = GetConVar('cqb_hud_x'):GetFloat()
+		local _x	= GetConVar('cqb_hud_x'):GetFloat()
+		local horz	= CQB_swc * _x
+		local fcl	= CQB_swc - horz
+		local tcl	= CQB_swc + horz
 
-		local fcl = _swc - (_swc * _x)
-		local tcl = _swc + (_swc * _x)
-	
 		local _y	= GetConVar('cqb_hud_y'):GetFloat()
-		local cus = _sh - _shc * (_y + 0.21)
-		local top = _sh - _shc * (_y + 0.14)
-		local mid = _sh - _shc * (_y + 0.07)
-		local bot = _sh - _shc * (_y)
+		local cus	= CQB_sh - CQB_shc * (_y + 0.21)
+		local top	= CQB_sh - CQB_shc * (_y + 0.14)
+		local mid	= CQB_sh - CQB_shc * (_y + 0.07)
+		local bot	= CQB_sh - CQB_shc * (_y)
 
-		ShadowText(owner:Nick(), 'CQBSmall', fcl, top)
-		ShadowText(_format(owner:Health()), 'CQBLarge', fcl, mid)
+		CQB_ShadowText(owner:Nick(), 'CQBSmall', fcl, top)
+		CQB_ShadowText(CQB_format(owner:Health()), 'CQBLarge', fcl, mid)
 
-		ShadowText('Armor', 'CQBSmall', tcl, top)
-		ShadowText(_format(owner:Armor()), 'CQBLarge', tcl, mid)
+		CQB_ShadowText('Armor', 'CQBSmall', tcl, top)
+		CQB_ShadowText(CQB_format(owner:Armor()), 'CQBLarge', tcl, mid)
 
-		ShadowText(self.PrintName, 'CQBMedium', _swc, top)
-		ShadowText(self.Owner:GetAmmoCount(self.Primary.Ammo), 'CQBLarge', _swc, mid)
-		ShadowText(self.Primary.Ammo, 'CQBSmall', _swc, bot)
+		CQB_ShadowText(self.PrintName, 'CQBMedium', CQB_swc, top)
+		CQB_ShadowText(self:GetOwner():GetAmmoCount(self.Primary.Ammo), 'CQBLarge', CQB_swc, mid)
+		CQB_ShadowText(self.Primary.Ammo, 'CQBSmall', CQB_swc, bot)
 
-		ShadowText(self.ExtraText or '', 'CQBSmall', _swc, cus)
+		CQB_ShadowText(self.ExtraText or '', 'CQBSmall', CQB_swc, cus)
 	end
 
 	function SWEP:DrawWeaponSelection(x, y, wide, tall, alpha)
-		ShadowText(self.PrintName, 'CQBSmall', x + wide / 2, y + tall / 2 - 10)
+		CQB_ShadowText(self.PrintName, 'CQBSmall', x + wide / 2, y + tall / 2 - 10)
 	end
 
 	function SWEP:CustomAmmoDisplay()
