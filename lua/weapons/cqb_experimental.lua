@@ -1,8 +1,8 @@
--- Clean code, bruh
+-- Experimental base (all in one without melee)
 
 AddCSLuaFile()
 
-CQB_register_base('cqb_base')
+CQB_register_base('cqb_experimental')
 
 local render, table, pairs = render, table, pairs
 local Clamp, Rand = math.Clamp, math.Rand
@@ -10,7 +10,7 @@ local Clamp, Rand = math.Clamp, math.Rand
 SWEP.Base					= 'weapon_base'
 
 SWEP.Category				= 'S T O L E N  C O D E ™'
-SWEP.PrintName				= 'cqb_base'
+SWEP.PrintName				= 'cqb_experimental'
 
 SWEP.Author					= 'JFAexe'
 
@@ -33,6 +33,16 @@ SWEP.Primary.DryfireData	= {
 	snd = Sound('weapons/mac10/mac10_boltpull.wav'),
 	vol = 70,
 	pit = 150
+}
+SWEP.Primary.SpinData		= {
+	snd = Sound('weapons/galil/galil_boltpull.wav'),
+	vol = 45,
+	pit = 80
+}
+SWEP.Primary.ZoomData		= {
+	snd = Sound('weapons/zoom.wav'),
+	vol = 65,
+	pit = 160
 }
 
 SWEP.Primary.Damage			= 10
@@ -102,10 +112,27 @@ SWEP.SpeedMultiply			= 1
 
 SWEP.ExtraText				= ''
 
+SWEP.Burst					= false
+SWEP.BurstShots				= 3
+
+SWEP.Spin					= false
+SWEP.Primary.MaxSpin		= 10
+SWEP.Primary.SpinSpd		= 10
+
+SWEP.Zoom					= false
+SWEP.SightsFov				= 60
+SWEP.SightsTime				= 0.05
+SWEP.SightsSensitivity		= 0.55
+
 
 --[[------------------------------------------------------------------------------------------------------
 	Base
 --------------------------------------------------------------------------------------------------------]]
+SWEP.CurSpin	= 0
+SWEP.Percent	= 0
+SWEP.BurstCount	= 0
+SWEP.BurstTimer	= 0
+
 function SWEP:AddDelay(delay)
 	self:SetNextPrimaryFire(delay)
 	self:SetNextSecondaryFire(delay)
@@ -134,6 +161,10 @@ function SWEP:AddNWVar(type, variable)
 end
 
 function SWEP:SetupDataTables()
+	self:AddNWVar('Bool', 'Sights')
+	self:AddNWVar('Float', 'Spin')
+	self:AddNWVar('Float', 'Delay')
+
 	self:AddDataTables()
 end
 
@@ -146,6 +177,8 @@ function SWEP:Precache()
 
 	util.PrecacheSound(data.SoundData.snd)
 	util.PrecacheSound(data.DryfireData.snd)
+	util.PrecacheSound(data.ZoomData.snd)
+	util.PrecacheSound(data.SpinData.snd)
 
 	util.PrecacheModel(self.ViewModel)
 	util.PrecacheModel(self.WorldModel)
@@ -180,6 +213,8 @@ function SWEP:Deploy()
 
 	self:AddDelay(delay)
 
+	self:SetDelay(delay)
+
 	self:OnDeploy()
 
 	return true
@@ -210,8 +245,29 @@ end
 	Functionality
 --------------------------------------------------------------------------------------------------------]]
 function SWEP:CanPrimaryAttack()
-	return self:AmmoCheck()
+	if not self.Spin then return self:AmmoCheck() end
+
+	if not self:AmmoCheck() then return false end
+
+	local data	= self.Primary
+	local spin	= data.SpinData
+	local owner	= self:GetOwner()
+	local delay	= CurTime() + data.Delay
+
+	if owner:KeyDown(IN_ATTACK) and self:GetSpin() < data.MaxSpin then
+		self:AddDelay(delay)
+
+		self:EmitCustomSound(spin.snd, spin.vol, spin.pit)
+
+		local vm = owner:GetViewModel()
+		local anim = vm:SelectWeightedSequence(ACT_VM_IDLE)
+
+		vm:SendViewModelMatchingSequence(anim)
+	end
+
+	return self:GetSpin() == data.MaxSpin
 end
+
 
 function SWEP:AmmoCheck()
 	local data	= self.Primary
@@ -232,7 +288,14 @@ end
 function SWEP:PrimaryAttack()
 	if not self:CanPrimaryAttack() then return end
 
-	self:Attack()
+	if self.Burst then
+		self.BurstTimer = CurTime()
+		self.BurstCount = self.BurstShots
+	
+		self:AddDelay(CurTime() + (self.Primary.Delay * self.BurstShots) + 0.05)
+	else
+		self:Attack()
+	end
 
 	return
 end
@@ -299,6 +362,10 @@ function SWEP:Think()
 	self:WeaponThink()
 
 	self:LimitAmmo()
+
+	if self.Burst then self:BurstThink() end
+	if self.Spin then self:SpinThink() end
+	if self.Zoom then self:ZoomThink() end
 end
 
 function SWEP:WeaponThink()
@@ -313,6 +380,61 @@ function SWEP:LimitAmmo()
 	if owner:GetAmmoCount(self:GetPrimaryAmmoType()) > data.MaxAmmo then
 		owner:SetAmmo(data.MaxAmmo, data.Ammo)
 	end
+end
+
+function SWEP:BurstThink()
+    if self.BurstTimer + self.Primary.Delay < CurTime() and self.BurstCount > 0 then
+		self.BurstCount = self.BurstCount - 1
+		self.BurstTimer = CurTime()
+
+		self:Attack()
+	end
+end
+
+function SWEP:SpinThink()
+	local data = self.Primary
+
+	self.Percent	= math.Round(self.CurSpin / data.MaxSpin * 100)
+	self.ExtraText	= 'Spin: ' .. self.Percent .. '%'
+
+	local FT = FrameTime()
+
+	self:SetSpin(self.CurSpin)
+
+	if self:GetDelay() > CurTime() then
+		self.CurSpin = math.Approach(self.CurSpin, 0, data.SpinSpd * 0.25 * FT)
+
+		return
+	end
+
+	if self:GetOwner():KeyDown(IN_ATTACK) then
+		self.CurSpin = math.Approach(self.CurSpin, data.MaxSpin, data.SpinSpd * FT)
+	else
+		self.CurSpin = math.Approach(self.CurSpin, 0, data.SpinSpd * 0.25 * FT)
+	end
+end
+
+function SWEP:ZoomThink()
+	local owner	= self:GetOwner()
+	local zoom	= self.Primary.ZoomData
+	local time	= self.SightsTime
+	local fov	= self.SightsFov - GetConVar('cqb_extrafov'):GetFloat()
+
+	if owner:KeyDown(IN_ATTACK2) and not (self:GetDelay() > CurTime()) then
+		if not self:GetSights() then
+			self:SetSights(true)
+			self:EmitCustomSound(zoom.snd, zoom.vol, zoom.pit)
+			owner:SetFOV(fov, time)
+		end
+	elseif self:GetSights() then
+		self:SetSights(false)
+		self:EmitCustomSound(zoom.snd, zoom.vol, zoom.pit)
+		owner:SetFOV(0, time)
+	end
+end
+
+function SWEP:AdjustMouseSensitivity()
+	return self:GetSights() and self.SightsSensitivity or 1
 end
 
 
@@ -506,9 +628,17 @@ if CLIENT then
 		for i = 0, math.Round(self.Primary.HorizSpread * 2) do cross = cross .. ' ' end
 
 		local _style = GetConVar('cqb_hud_crosshairstyle'):GetInt()
-		local _cross = styles.l[_style] .. cross .. styles.r[_style]
+		local _stll  = styles.l[_style]
+		local _stlr  = styles.r[_style]
+		local _cross = _stll .. cross .. _stlr
+	
+		local bool   = self:GetSights()
+		local _zooml = bool and _stll or ''
+		local _zoomr = bool and _stlr or ''
 
-		CQB_ShadowText(_cross, 'CQBMicro', CQB_swc, CQB_shc - 2)
+		local _zoom = _zooml .. _cross .. _zoomr
+
+		CQB_ShadowText(self.Zoom and _zoom or _cross, 'CQBMicro', CQB_swc, CQB_shc - 2)
 	end
 
 	function SWEP:DrawHUD()
@@ -552,6 +682,10 @@ if CLIENT then
 		self.AmmoDisplay.Draw = true
 
 		self.AmmoDisplay.PrimaryClip = self:Ammo1()
+
+		if self.Spin then
+			self.AmmoDisplay.PrimaryAmmo = self.Percent
+		end
 
 		return self.AmmoDisplay
 	end
@@ -987,6 +1121,3 @@ if CLIENT then
 		return res
 	end
 end
-
-
--- Юра лох https://steamcommunity.com/sharedfiles/filedetails/?id=2164961319 (C) PD 22nd july 2020 21:47 gtm+3

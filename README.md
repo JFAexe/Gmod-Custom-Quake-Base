@@ -12,5 +12,11 @@ It was designed to feel like old school fps games like Quake / Doom.
   Better Spin base, autorun changes
 * Version 1.3 July 26, 2020:
   Burst base, preparations for Melee base
+* Version 1.4 July 28, 2020:
+  Melee base, Zoom base, Experimental base for all in one without melee
+
+## Planned features:
+* Rocket/Grenade launchers
+* Dual weapons
 
 ##### *If you want to contribute please keep your code clean.*

@@ -8,7 +8,7 @@ AddCSLuaFile()
 
 -- CQB_add_killicon_text('cqb_template', 'S T O L E N  C O D E ™')	-- Fast killicon
 
-SWEP.Base					= 'cqb_base' -- cqb_base / cqb_spin_base / cqb_burst_base / cqb_zoom_base
+SWEP.Base					= 'cqb_melee_base'
 
 SWEP.Category				= 'S T O L E N  C O D E ™'
 SWEP.PrintName				= 'cqb_template'
@@ -19,41 +19,33 @@ SWEP.Spawnable				= false
 SWEP.AdminSpawnable			= false
 SWEP.AdminOnly 				= false
 
-SWEP.Slot 					= 1
+SWEP.Slot 					= 0
 SWEP.SlotPos 				= 0
-
-SWEP.DrawCrosshair			= false
-SWEP.DrawAmmo 				= false
 
 
 -- Primary
-SWEP.Primary.SoundData		= {
-	snd = Sound('weapons/fiveseven/fiveseven-1.wav'),
-	vol = 75,
+SWEP.Primary.SoundHitEnemy		= {
+	snd = Sound('Weapon_Crowbar.Melee_Hit'),
+	vol = 65,
 	pit = 90
 }
-SWEP.Primary.DryfireData	= {
-	snd = Sound('weapons/mac10/mac10_boltpull.wav'),
-	vol = 70,
-	pit = 150
+SWEP.Primary.SoundHitWorld		= {
+	snd = Sound('Weapon_Crowbar.Melee_HitWorld'),
+	vol = 65,
+	pit = 90
+}
+SWEP.Primary.SoundMiss		= {
+	snd = Sound('Weapon_Crowbar.Single'),
+	vol = 65,
+	pit = 90
 }
 SWEP.Primary.Damage			= 10
-SWEP.Primary.NumShots		= 1
 SWEP.Primary.Automatic		= true
-SWEP.Primary.RPM			= 800
-SWEP.Primary.HorizSpread	= 2
-SWEP.Primary.VertSpread		= 0
-SWEP.Primary.Recoil			= 0.7
-SWEP.Primary.Force			= 0.5
-SWEP.Primary.DamageType		= DMG_BULLET
-
-
--- Ammo
-SWEP.Primary.DefaultClip	= 100
-SWEP.Primary.TakeAmmo		= 1
-SWEP.Primary.AmmoLimit		= false
-SWEP.Primary.MaxAmmo		= 100
-SWEP.Primary.Ammo			= 'SMG1'
+SWEP.Primary.DelayMiss		= 0.4
+SWEP.Primary.DelayHit		= 0.3
+SWEP.Primary.Force			= 10
+SWEP.Primary.Distance		= 60
+SWEP.Primary.DamageType		= DMG_CLUB
 
 
 -- View model
@@ -62,7 +54,7 @@ SWEP.ViewModelFlip			= false
 SWEP.UseHands				= false
 SWEP.LightedViewmodel		= false
 SWEP.ShowViewModel			= true
-SWEP.ViewModel				= 'models/weapons/cstrike/c_rif_ak47.mdl'
+SWEP.ViewModel				= 'models/weapons/c_crowbar.mdl'
 SWEP.VMPos					= Vector(0, 0, 0)
 SWEP.VMAng					= Angle(0, 0, 0)
 SWEP.AltVMPos				= Vector(0, 0, 0)
@@ -70,8 +62,8 @@ SWEP.AltVMAng				= Angle(0, 0, 0)
 
 
 -- World model
-SWEP.WorldModel				= 'models/weapons/w_rif_ak47.mdl'
-SWEP.HoldType				= 'ar2'
+SWEP.WorldModel				= 'models/weapons/w_crowbar.mdl'
+SWEP.HoldType				= 'knife'
 SWEP.WorldModelData			= {
 	Pos	= {
 		Up		= 0,
@@ -86,6 +78,9 @@ SWEP.WorldModelData			= {
 	Scale	= 1
 }
 
+SWEP.AnimHit				= ACT_VM_HITCENTER
+SWEP.AnimMiss				= ACT_VM_MISSCENTER
+
 
 -- SCK
 SWEP.ViewModelBoneMods		= {}
@@ -94,42 +89,10 @@ SWEP.WElements				= {}
 
 
 -- Special options
-SWEP.XMuzzleflash			= false
-SWEP.DisableMuzzleflash		= false
-SWEP.DisableShells			= false
-
-SWEP.XMuzzleflashSize		= 1
-SWEP.TracerEffect			= 'tracer'
-
 SWEP.Heavy					= false
 SWEP.SpeedMultiply			= 1
 
 SWEP.ExtraText				= ''
-
-
--- Burst base only
-SWEP.BurstShots				= 3
-
-
--- Spin base only
-SWEP.Primary.SpinData		= {
-	snd = Sound('weapons/galil/galil_boltpull.wav'),
-	vol = 45,
-	pit = 80
-}
-SWEP.MaxSpin				= 10
-SWEP.SpinSpd				= 10
-
-
--- Zoom base only
-SWEP.Primary.ZoomData		= {
-	snd = Sound('weapons/zoom.wav'),
-	vol = 65,
-	pit = 160
-}
-SWEP.SightsFov				= 60
-SWEP.SightsTime				= 0.05
-SWEP.SightsSensitivity		= 0.55
 
 
 -- Callbacks

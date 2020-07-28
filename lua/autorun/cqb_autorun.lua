@@ -12,16 +12,18 @@ end
 function CQB_add_sound(name, path)
 	sound.Add({
 		name	= name,
-		channel	= CHAN_ITEM,
+		channel	= CHAN_WEAPON,
 		volume	= 1.0,
 		sound	= path
 	})
 end
 
-function CQB_add_killicon(id, name)
-	if CLIENT then
-		killicon.AddFont(id, 'CQBKill', name, Color(225, 255, 0, 255))
-	end
+function CQB_add_killicon(id)
+	return CLIENT and killicon.Add(id, 'vgui/killicons/' .. id, Color(255, 10, 15, 255))
+end
+
+function CQB_add_killicon_text(id)
+	return CLIENT and killicon.AddFont(id, 'CQBKill', name, Color(255, 10, 15, 255))
 end
 
 local CreateClConv = CreateClientConVar
@@ -31,10 +33,12 @@ local function AddClConv(name, def, min, max)
 end
 
 AddClConv('cqb_viewbob', 1, 0, 1)
+AddClConv('cqb_extrafov', 0, -5, 20)
 AddClConv('cqb_altpos', 0, 0, 1)
+AddClConv('cqb_fancyvm', 1, 0, 1)
 AddClConv('cqb_hud_enabled', 1, 0, 1)
 AddClConv('cqb_hud_crosshair', 1, 0, 1)
-AddClConv('cqb_hud_crosshairstyle', 1, 1, 11)
+AddClConv('cqb_hud_crosshairstyle', 1, 1, 12)
 AddClConv('cqb_hud_x', 0.25, 0.25, 0.4)
 AddClConv('cqb_hud_y', 0.15, 0.15, 0.6)
 
@@ -45,26 +49,26 @@ AddClConv('cqb_hud_y', 0.15, 0.15, 0.6)
 if CLIENT then
 	local NewFont, Scale = surface.CreateFont, ScreenScale
 
-	local _font, _weight, _anta = 'DermaLarge', 800, true
+	local _font, _weight, _anta = 'DermaLarge', 800, false
 
 	NewFont('CQBLarge', {
 		font			= _font,
 		weight			= _weight,
-		size			= Scale(18),
+		size			= Scale(24),
 		antialiasing	= _anta
 	})
 	
 	NewFont('CQBMedium', {
 		font			= _font,
 		weight			= _weight,
-		size			= Scale(10),
+		size			= Scale(14),
 		antialiasing	= _anta
 	})
 	
 	NewFont('CQBSmall', {
 		font			= _font,
 		weight			= _weight,
-		size			= Scale(8),
+		size			= Scale(10),
 		antialiasing	= _anta
 	})
 	
@@ -89,7 +93,32 @@ if CLIENT then
 	CQB_ColBG = Color(0, 0, 0, 200)
 	CQB_ColWH = Color(255, 255, 255)
 
+	CQB_CrosshairStyles = {
+		l   = { '-', '~', '=', ':', '[', '(', '{', '<', '>', '|', '/', '\\' },
+		r   = { '-', '~', '=', ':', ']', ')', '}', '>', '<', '|', '\\', '/' },
+	} 
+
 	local SimpleText = draw.SimpleText
+
+	function CQB_TextLimit(w, text, font)
+		surface.SetFont(font)
+
+		local _w = surface.GetTextSize(text)
+
+		if _w > w then
+			while (true) do
+				text = string.sub(text, 1, string.len(text) - 1)
+
+				local w_ = surface.GetTextSize(text .. '...')
+
+				if w_ < w or string.len(text) <= 0 then break end
+			end
+	
+			text = text .. '...'
+		end
+	
+		return text
+	end
 
 	function CQB_format(var, max)
 		local max = max or 999
@@ -194,17 +223,19 @@ if CLIENT then
 			panel:ClearControls()
 			
 			panel:CheckBox('Alt weapon pos', 'cqb_altpos')
+			panel:CheckBox('Fancy viewmodel sway', 'cqb_fancyvm')
 
 			panel:CheckBox('Viewbob', 'cqb_viewbob')
+			panel:NumSlider('Extra FOV', 'cqb_extrafov', -5, 20)
 
 			panel:CheckBox('Crosshair', 'cqb_hud_crosshair')
-			panel:NumSlider('Crosshair style', 'cqb_hud_crosshairstyle', 1, 11, 0)
+			panel:NumSlider('Crosshair style', 'cqb_hud_crosshairstyle', 1, 12, 0)
 
 			panel:CheckBox('HUD', 'cqb_hud_enabled')
 			panel:NumSlider('HUD Horizontal modifier', 'cqb_hud_x', 0.25, 0.4)
 			panel:NumSlider('HUD Vertical modifier', 'cqb_hud_y', 0.15, 0.6)
 
-			panel:Help('\nv1.3 by JFAexe')
+			panel:Help('\nv1.4 by JFAexe')
 		end)
 	end)
 end

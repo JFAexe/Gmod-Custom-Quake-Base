@@ -1,0 +1,14 @@
+{
+	"title"		:	"Custom Quake Base",
+	"type"		:	"weapon",
+	"tags"		:	[ "fun", "movie" ],
+	"ignore"	:
+	[
+		"*.psd",
+		"*.vcproj",
+		"*.svn*",
+		".gitattributes",
+		"LICENSE",
+		"README.md"
+	]
+}
