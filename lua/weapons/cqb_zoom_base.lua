@@ -98,6 +98,8 @@ if CLIENT then
 	function SWEP:DrawCrosshair()
 		if not GetConVar('cqb_hud_crosshair'):GetBool() then return end
 
+		local DrawColor, DrawRect = surface.SetDrawColor, surface.DrawRect
+
 		local styles = CQB_CrosshairStyles
 		local cross  = ' '
 
@@ -112,6 +114,13 @@ if CLIENT then
 		local _zooml = bool and _stll or ''
 		local _zoomr = bool and _stlr or ''
 
-		CQB_ShadowText(_zooml .. _cross .. _zoomr, 'CQBMicro', CQB_swc, CQB_shc - 2)
+		CQB_ShadowText(_zooml .. _cross .. _zoomr, 'CQBMicro', CQB_swc, CQB_shc - 1)
+		
+		if not bool then return end
+
+		DrawColor(CQB_ColBG)
+		DrawRect(CQB_swc + 1, CQB_shc + 1, 4, 4)
+		DrawColor(CQB_ColWH)
+		DrawRect(CQB_swc - 1, CQB_shc - 1, 4, 4)
 	end
 end

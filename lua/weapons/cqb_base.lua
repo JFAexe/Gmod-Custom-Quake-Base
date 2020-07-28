@@ -111,8 +111,8 @@ function SWEP:AddDelay(delay)
 	self:SetNextSecondaryFire(delay)
 end
 
-function SWEP:EmitCustomSound(sound, volume, pitch)
-	self:EmitSound(sound, volume, pitch, 1, CHAN_WEAPON)
+function SWEP:EmitCustomSound(sound, volume, pitch, chan)
+	self:EmitSound(sound, volume, pitch, 1, chan or CHAN_ITEM)
 end
 
 SWEP.DataTableReserve = {
@@ -244,7 +244,7 @@ function SWEP:Attack()
 	local delay	= CurTime() + data.Delay
 
 	if SERVER or IsFirstTimePredicted() then
-		self:EmitCustomSound(sound.snd, sound.vol, sound.pit)
+		self:EmitCustomSound(sound.snd, sound.vol, sound.pit, CHAN_AUTO)
 
 		for i = 1, data.NumShots do self:ShootBullet() end
 	end
@@ -508,7 +508,7 @@ if CLIENT then
 		local _style = GetConVar('cqb_hud_crosshairstyle'):GetInt()
 		local _cross = styles.l[_style] .. cross .. styles.r[_style]
 
-		CQB_ShadowText(_cross, 'CQBMicro', CQB_swc, CQB_shc - 2)
+		CQB_ShadowText(_cross, 'CQBMicro', CQB_swc, CQB_shc - 1)
 	end
 
 	function SWEP:DrawHUD()
