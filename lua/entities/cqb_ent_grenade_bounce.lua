@@ -38,7 +38,9 @@ function ENT:OnPhysicsCollide(data, phys)
 end
 
 function ENT:OnExplode()
-	util.Decal('Scorch', self.HitPos + self.HitNormal, self.HitPos - self.HitNormal)
+	if self.HitPos and self.HitNormal then
+		util.Decal('Scorch', self.HitPos + self.HitNormal, self.HitPos - self.HitNormal)
+	end
 
 	self:Remove()
 end
