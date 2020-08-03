@@ -4,7 +4,7 @@
 CQB_VER			= 2
 
 CQB_ABOUT		= [[
-	Base version 2.0 Aug 2, 2020
+	Base version 2.0.2 Aug 3, 2020
 
 	Developer: JFAexe (id/jfaexe)
 	Support and testing: Plague Doctor (id/JustPD)

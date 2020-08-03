@@ -42,7 +42,7 @@ AddClConv('cqb_extrafov', 0, -5, 20)
 AddClConv('cqb_altpos', 0, 0, 1)
 AddClConv('cqb_fancyvm', 1, 0, 1)
 AddClConv('cqb_shells', 1, 0, 1)
-AddClConv('cqb_shellstime', 0.8, 0.1, 20)
+AddClConv('cqb_shellstime', 2, 2, 20)
 AddClConv('cqb_hud_enabled', 1, 0, 1)
 AddClConv('cqb_hud_crosshair', 1, 0, 1)
 AddClConv('cqb_hud_crosshairstyle', 1, 1, 14)
@@ -242,7 +242,7 @@ if CLIENT then
 			cqb_altpos				= '0',
 			cqb_fancyvm				= '1',
 			cqb_shells				= '1',
-			cqb_shellstime			= '0.8',
+			cqb_shellstime			= '2',
 			cqb_hud_enabled			= '1',
 			cqb_hud_crosshair		= '1',
 			cqb_hud_crosshairstyle	= '1',
@@ -274,7 +274,7 @@ if CLIENT then
 		panel:CheckBox('Alt weapon pos', 'cqb_altpos')
 		panel:CheckBox('Fancy viewmodel sway', 'cqb_fancyvm')
 		panel:CheckBox('Enable Lua shells', 'cqb_shells')
-		panel:NumSlider('Lua shells life time', 'cqb_shellstime', 0.1, 20)
+		panel:NumSlider('Lua shells life time', 'cqb_shellstime', 2, 20)
 
 		panel:Help('View')
 		panel:CheckBox('Viewbob', 'cqb_viewbob')
