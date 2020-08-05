@@ -2,13 +2,5 @@
 	"title"		:	"Custom Quake Base",
 	"type"		:	"weapon",
 	"tags"		:	[ "fun", "movie" ],
-	"ignore"	:
-	[
-		"*.psd",
-		"*.vcproj",
-		"*.svn*",
-		".gitattributes",
-		"LICENSE",
-		"README.md"
-	]
+	"ignore"	:	[ ".gitattributes", "LICENSE", "README.md", "cqb_base.jpg", "*.bat" ]
 }

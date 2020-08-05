@@ -13,12 +13,11 @@ ENT.AdminOnly 		= false
 
 ENT.Model			= 'models/Items/AR2_Grenade.mdl'
 ENT.Scale			= 1.5
-ENT.RenderGroup		= RENDERGROUP_TRANSLUCENT
 
-ENT.Timer			= 2
+ENT.Timer			= 1
 
 function ENT:OnInit()
-	self.Timer = 2 + CurTime()
+	self.Timer = CurTime() + self.Timer
 end
 
 function ENT:Think()
@@ -34,7 +33,7 @@ end
 function ENT:OnPhysicsCollide(data, phys)
 	self:EmitSound('weapons/flashbang/grenade_hit1.wav')
 
-	phys:ApplyForceCenter(-data.Speed * data.HitNormal * 0.4 + (data.OurOldVelocity * -0.6))
+	phys:ApplyForceCenter(-data.Speed * data.HitNormal * 1.2)
 end
 
 function ENT:OnExplode()
@@ -49,12 +48,4 @@ function ENT:StartTouch(ent)
     if ent:IsValid() and (ent:IsNPC() or ent:IsPlayer() or type(ent) == 'NextBot') and SERVER then
         self:Explode()
     end
-end
-
-function ENT:EndTouch(ent)
-	return
-end
-
-function ENT:Touch(ent)
-	return
 end

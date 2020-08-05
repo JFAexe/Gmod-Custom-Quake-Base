@@ -10,18 +10,14 @@ ENT.Base			= 'base_gmodentity'
 ENT.Type			= 'anim'
 ENT.PrintName		= 'cqb_ent_explosive_base'
 
-ENT.Author 			= 'JFAexe'
-ENT.Category 		= 'S T O L E N  C O D E ™'
-ENT.Spawnable 		= false
-ENT.AdminOnly 		= false
+ENT.Author			= 'JFAexe'
+ENT.Category		= 'S T O L E N  C O D E ™'
+ENT.Spawnable		= false
+ENT.AdminOnly		= false
 
 ENT.Model			= 'models/Items/AR2_Grenade.mdl'
 ENT.Skin			= 0
 ENT.Scale			= 2
-ENT.RenderGroup		= RENDERGROUP_TRANSLUCENT
-
-ENT.HitPos			= nil
-ENT.HitNormal		= nil
 
 ENT.Damage			= 100
 ENT.Radius			= 100
@@ -30,6 +26,10 @@ ENT.Radius			= 100
 --[[------------------------------------------------------------------------------------------------------
 	Base
 --------------------------------------------------------------------------------------------------------]]
+ENT.RenderGroup		= RENDERGROUP_TRANSLUCENT
+ENT.HitPos			= nil
+ENT.HitNormal		= nil
+
 function ENT:Initialize()
 	local owner	= self:GetOwner()
 
@@ -47,7 +47,7 @@ function ENT:Initialize()
 	self:SetMoveCollide(COLLISION_GROUP_PROJECTILE)
 	self:SetCollisionGroup(COLLISION_GROUP_PROJECTILE)
 
-	local color = owner:GetPlayerColor():ToColor()
+	local color = ColorAlpha(owner:GetPlayerColor():ToColor(), 150)
 
 	if SERVER then
 		util.SpriteTrail(self, 0, color, true, 0, 16, 2, 0.1, 'trails/smoke.vmt')

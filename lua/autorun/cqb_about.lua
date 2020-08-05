@@ -1,10 +1,10 @@
 --[[------------------------------------------------------------------------------------------------------
 	Text for info tab
 --------------------------------------------------------------------------------------------------------]]
-CQB_VER			= 2
+CQB_VER			= 2.1
 
 CQB_ABOUT		= [[
-	Base version 2.0.2 Aug 3, 2020
+	Base version 2.1 Aug 5, 2020
 
 	Developer: JFAexe (id/jfaexe)
 	Support and testing: Plague Doctor (id/JustPD)
@@ -31,6 +31,11 @@ CQB_CHANGELOG	= [[
 		- Projectile and dual weapons support
 		- Better Melee base with backstabs
 		- Lua shells
+
+	Version 2.1 Aug 5, 2020:
+		- Server options
+		- Spawner entity base
+		- New HUD font
 ]]
 
 CQB_LICENSE		= [[

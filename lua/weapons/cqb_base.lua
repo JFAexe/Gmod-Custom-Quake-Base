@@ -361,6 +361,8 @@ function SWEP:CanPrimaryAttack()
 end
 
 function SWEP:AmmoCheck()
+	if CQB_GetConv('cqb_sv_infinite_ammo', 'bool') then return true end
+
 	local data	= self.Primary
 	local dry	= data.DryfireData
 	local delay	= CurTime() + data.Delay
@@ -417,7 +419,9 @@ function SWEP:Attack()
 		end
 	end
 
-	self:TakePrimaryAmmo(data.TakeAmmo)
+	local takeammo = CQB_GetConv('cqb_sv_infinite_ammo', 'bool') and 0 or data.TakeAmmo
+
+	self:TakePrimaryAmmo(takeammo)
 	self:AddDelay(delay)
 end
 
@@ -460,7 +464,7 @@ function SWEP:ShootProjectile()
 	local avec	= owner:GetAimVector()
 	local spos	= owner:GetShootPos()
 	local ea =  owner:EyeAngles()
-	local pos = spos + ea:Forward() * 50
+	local pos = spos + ea:Forward() * 5
 
 	local vel = ea + Angle(Rand(-data.VertSpread, data.VertSpread), Rand(-data.HorizSpread, data.HorizSpread), 0)
 	vel = vel:Forward() * self.ProjectileForce
@@ -524,7 +528,9 @@ function SWEP:AttackRecoil()
 		owner:ViewPunch(Angle(punch, 0, 0))
 	end
 
-	if self.Heavy then owner:SetVelocity(owner:GetForward() * (data.Force * -100)) end
+	if self.Heavy and CQB_GetConv('cqb_sv_allow_knockback', 'bool') then
+		owner:SetVelocity(owner:GetForward() * (data.Force * -100))
+	end
 end
 
 function SWEP:SecondaryAttack()
@@ -538,7 +544,9 @@ end
 function SWEP:Think()
 	self:WeaponThink()
 
-	self:LimitAmmo()
+	if CQB_GetConv('cqb_sv_allow_ammolimit', 'bool') then 
+		self:LimitAmmo()
+	end
 
 	if self.Burst then self:BurstThink() end
 	if self.Spin then self:SpinThink() end
@@ -777,9 +785,9 @@ function SWEP:MakeShell(shell, pos, ang, vel)
 
 	timer.Simple(time, function()
 		local sndt	= shell.sound
-		local _snd	= (type(sndt) == 'table') and sndt[Random(#sndt)] or sndt
+		local snd	= (type(sndt) == 'table') and sndt[Random(#sndt)] or sndt
 
-		if IsValid(ent) then sound.Play(_snd, ent:GetPos()) end
+		if IsValid(ent) then sound.Play(snd, ent:GetPos()) end
 	end)
 
 	SafeRemoveEntityDelayed(ent, removetime)
@@ -949,9 +957,9 @@ if CLIENT then
 		local _zoom = _zooml .. _cross .. _zoomr
 
 		local text = self.Zoom and _zoom or _cross
-		local w, h = CQB_TextSize(text, 'CQBMicro')
+		local w, h = CQB_TextSize(text, 'CQBCross')
 
-		CQB_ShadowText(text, 'CQBMicro', CQB_swc - w * 0.5, CQB_shc - 2 - h * 0.45, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+		CQB_ShadowText(text, 'CQBCross', CQB_swc - w * 0.5, CQB_shc - 2 - h * 0.45, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
 
 		if not bool then return end
 
@@ -971,21 +979,26 @@ if CLIENT then
 		local rcl	= CQB_swc + horz
 
 		local _y	= CQB_GetConv('cqb_hud_y', 'float')
-		local cus	= CQB_sh - CQB_shc * (_y + 0.24)
-		local top	= CQB_sh - CQB_shc * (_y + 0.17)
-		local mid	= CQB_sh - CQB_shc * (_y + 0.08)
+		local cus	= CQB_sh - CQB_shc * (_y + 0.3)
+		local top	= CQB_sh - CQB_shc * (_y + 0.22)
+		local mid	= CQB_sh - CQB_shc * (_y + 0.1)
 		local bot	= CQB_sh - CQB_shc * (_y)
 
-		CQB_ShadowText('Armor', 'CQBSmall', lcl, top)
+		local healthcolor = CQB_ColorFade(CQB_ColWH, CQB_ColRd, math.Clamp(owner:Health() / owner:GetMaxHealth(), 0, 1))
+
+		CQB_ShadowText('Armor', 'CQBSmall', lcl, top, nil, TEXT_ALIGN_TOP)
 		CQB_ShadowText(CQB_format(owner:Armor()), 'CQBLarge', lcl, mid)
 
-		CQB_ShadowText(CQB_TextLimit(horz * 0.6, owner:Nick(), 'CQBSmall'), 'CQBSmall', rcl, top)
-		CQB_ShadowText(CQB_format(owner:Health()), 'CQBLarge', rcl, mid)
+		CQB_ShadowText(CQB_TextLimit(horz * 0.6, owner:Nick(), 'CQBSmall'), 'CQBSmall', rcl, top, nil, TEXT_ALIGN_TOP)
+		CQB_ShadowTextColor(CQB_format(owner:Health()), 'CQBLarge', rcl, mid, healthcolor)
 
 		CQB_ShadowText(CQB_TextLimit(horz * 1.4, self.PrintName, 'CQBMedium'), 'CQBMedium', CQB_swc, top)
 
 		if self.DrawAmmo then
-			CQB_ShadowText(self:Ammo1(), 'CQBLarge', CQB_swc, mid)
+			local ammo = self:Ammo1()
+			local ammocol = CQB_ColorFade(CQB_ColWH, CQB_ColRd, ammo > 0 and 1 or 0)
+
+			CQB_ShadowTextColor(ammo, 'CQBLarge', CQB_swc, mid, ammocol)
 			CQB_ShadowText(self.Primary.Ammo, 'CQBSmall', CQB_swc, bot)
 		end
 

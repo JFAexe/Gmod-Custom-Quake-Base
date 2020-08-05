@@ -13,7 +13,6 @@ ENT.AdminOnly 		= false
 
 ENT.Model			= 'models/Items/AR2_Grenade.mdl'
 ENT.Scale			= 2
-ENT.RenderGroup		= RENDERGROUP_TRANSLUCENT
 
 function ENT:OnPhysicsCollide(data, phys)
 	self:Explode()
