@@ -3,228 +3,229 @@ AddCSLuaFile()
 -- Custom Quake base melee template
 
 --[[------------------------------------------------------------------------------------------------------
-	Useful functions
+    Useful functions
 --------------------------------------------------------------------------------------------------------]]
 --[[
-	CQB_add_sound(name, path) -- Faster sound.Add
+    CQB_add_sound(name, path) -- Faster sound.Add
 
-	CQB_add_killicon_text('cqb_template', 'S T O L E N  C O D E ™') -- Fast killicon with text
+    CQB_add_killicon_text('cqb_template', 'S T O L E N  C O D E ™') -- Fast killicon with text
 
-	CQB_add_killicon(id) -- Killicon from vgui/killicons/id
+    CQB_add_killicon(id) -- Killicon from vgui/killicons/id
 ]]
 
 
 --[[------------------------------------------------------------------------------------------------------
-	Necessary info
+    Necessary info
 --------------------------------------------------------------------------------------------------------]]
-SWEP.Base					= 'cqb_melee_base'
+SWEP.Base                   = 'cqb_melee_base'
 
-SWEP.Category				= 'S T O L E N  C O D E ™'
-SWEP.PrintName				= 'cqb_melee_template'
+SWEP.Category               = 'S T O L E N  C O D E ™'
+SWEP.PrintName              = 'cqb_melee_template'
 
-SWEP.Author 				= 'JFAexe'
+SWEP.Author                 = 'JFAexe'
 
-SWEP.Spawnable				= false
-SWEP.AdminSpawnable			= false
-SWEP.AdminOnly 				= false
+SWEP.Spawnable              = false
+SWEP.AdminSpawnable         = false
+SWEP.AdminOnly              = false
 
-SWEP.Slot 					= 0
-SWEP.SlotPos 				= 0
+SWEP.Slot                   = 0
+SWEP.SlotPos                = 0
 
 
 --[[------------------------------------------------------------------------------------------------------
-	Sounds
+    Sounds
 --------------------------------------------------------------------------------------------------------]]
-SWEP.Primary.RandPitch		= 20
-SWEP.Primary.SoundHitEnemy	= {
-	snd = Sound('Weapon_Crowbar.Melee_Hit'),
-	vol = 65,
-	pit = 90
+SWEP.Primary.RandPitch      = 20
+SWEP.Primary.SoundHitEnemy  = {
+    snd = Sound('Weapon_Crowbar.Melee_Hit'),
+    vol = 65,
+    pit = 90
 }
-SWEP.Primary.SoundHitWorld	= {
-	snd = Sound('Weapon_Crowbar.Melee_HitWorld'),
-	vol = 65,
-	pit = 90
+SWEP.Primary.SoundHitWorld  = {
+    snd = Sound('Weapon_Crowbar.Melee_HitWorld'),
+    vol = 65,
+    pit = 90
 }
-SWEP.Primary.SoundMiss		= {
-	snd = Sound('Weapon_Crowbar.Single'),
-	vol = 65,
-	pit = 90
-}
-
-
---[[------------------------------------------------------------------------------------------------------
-	Attack
---------------------------------------------------------------------------------------------------------]]
-SWEP.Primary.Damage			= 20
-SWEP.Primary.StabDamage		= 80
-SWEP.Primary.DelayMiss		= 0.4
-SWEP.Primary.DelayHit		= 0.3
-SWEP.Primary.Force			= 10
-SWEP.Primary.Distance		= 60
-SWEP.Primary.DamageType		= DMG_CLUB
-
-SWEP.AnimMiss				= 'midslash1'
-SWEP.AnimHit				= 'stab'
-SWEP.AnimStab				= 'stab_miss'
-
-SWEP.ViewPunchMiss			= Angle(0, 0, 0)
-SWEP.ViewPunchHit			= Angle(0, 0, 0)
-SWEP.ViewPunchStab			= Angle(0, 0, 0)
-
-SWEP.CanStab				= true
-
-SWEP.AttackBounds			= {
-	mins = Vector(-16, -16, -16),
-	maxs = Vector(16, 16, 16)
+SWEP.Primary.SoundMiss      = {
+    snd = Sound('Weapon_Crowbar.Single'),
+    vol = 65,
+    pit = 90
 }
 
 
 --[[------------------------------------------------------------------------------------------------------
-	View Model
+    Attack
 --------------------------------------------------------------------------------------------------------]]
-SWEP.ViewModelFOV			= 80
-SWEP.ViewModelFlip			= false
-SWEP.UseHands				= false
-SWEP.LightedViewmodel		= false
-SWEP.ShowViewModel			= true
-SWEP.ViewModel				= 'models/weapons/c_crowbar.mdl'
-SWEP.VMPos					= Vector(0, 0, 0)
-SWEP.VMAng					= Angle(0, 0, 0)
-SWEP.AltVMPos				= Vector(0, 0, 0)
-SWEP.AltVMAng				= Angle(0, 0, 0)
+SWEP.Primary.Damage         = 20
+SWEP.Primary.StabDamage     = 80
+SWEP.Primary.DelayMiss      = 0.4
+SWEP.Primary.DelayHit       = 0.3
+SWEP.Primary.Force          = 10
+SWEP.Primary.Distance       = 60
+SWEP.Primary.DamageType     = DMG_CLUB
 
+SWEP.AnimMiss               = 'midslash1'
+SWEP.AnimHit                = 'stab'
+SWEP.AnimStab               = 'stab_miss'
 
---[[------------------------------------------------------------------------------------------------------
-	World Model
---------------------------------------------------------------------------------------------------------]]
-SWEP.WorldModel				= 'models/weapons/w_crowbar.mdl'
-SWEP.HoldType				= 'knife'
-SWEP.WorldModelData			= {
-	Pos	= {
-		Up		= 0,
-		Right	= 0,
-		Forward	= 0,
-	},
-	Ang	= {
-		Up		= 0,
-		Right	= 0,
-		Forward	= 180
-	},
-	Scale	= 1
+SWEP.ViewPunchMiss          = Angle(0, 0, 0)
+SWEP.ViewPunchHit           = Angle(0, 0, 0)
+SWEP.ViewPunchStab          = Angle(0, 0, 0)
+
+SWEP.CanStab                = true
+
+SWEP.AttackBounds           = {
+    mins = Vector(-16, -16, -16),
+    maxs = Vector(16, 16, 16)
 }
 
 
 --[[------------------------------------------------------------------------------------------------------
-	SCK
+    View Model
 --------------------------------------------------------------------------------------------------------]]
-SWEP.ViewModelBoneMods		= {}
-SWEP.VElements				= {}
-SWEP.WElements				= {}
+SWEP.ViewModelFOV           = 80
+SWEP.ViewModelFlip          = false
+SWEP.UseHands               = false
+SWEP.LightedViewmodel       = false
+SWEP.ShowViewModel          = true
+SWEP.ViewModel              = 'models/weapons/c_crowbar.mdl'
+SWEP.VMPos                  = Vector(0, 0, 0)
+SWEP.VMAng                  = Angle(0, 0, 0)
+SWEP.AltVMPos               = Vector(0, 0, 0)
+SWEP.AltVMAng               = Angle(0, 0, 0)
 
 
 --[[------------------------------------------------------------------------------------------------------
-	Base specific
+    World Model
 --------------------------------------------------------------------------------------------------------]]
-SWEP.ExtraText				= ''
-
-SWEP.SpeedMultiply			= 1
+SWEP.WorldModel             = 'models/weapons/w_crowbar.mdl'
+SWEP.HoldType               = 'knife'
+SWEP.WorldModelData         = {
+    Pos = {
+        Up      = 0,
+        Right   = 0,
+        Forward = 0,
+    },
+    Ang = {
+        Up      = 0,
+        Right   = 0,
+        Forward = 180
+    },
+    Scale = 1
+}
 
 
 --[[------------------------------------------------------------------------------------------------------
-	Replacements
-	You can replace every function but be careful and try not to touch SCK related stuff
+    SCK
+--------------------------------------------------------------------------------------------------------]]
+SWEP.ViewModelBoneMods      = {}
+SWEP.VElements              = {}
+SWEP.WElements              = {}
 
-	Functions:
-		SWEP:AddDelay(delay) -- Adds Delay for Primary and Secondary attacks
-		SWEP:EmitCustomSound(sound, volume, pitch, chan) -- Emits sound with pitch and volume level
-		SWEP:AddNWVar(type, variable) -- Used in SWEP:AddDataTables(). Automated.
-			(Data types: String, Bool, Float, Int, Vector, Angle, Entity)
-		SWEP:TargetIsABeing(ent) -- Checks entity for being a player / npc / nextbot
-		SWEP:MeleeAttack() -- Does attack
-		SWEP:CheckBackstab(ent) -- Checks if backstab is possible
 
-	Misc:
-		CQB_GetConv(convar, type) -- Returns var's data (types: bool, int, float)
+--[[------------------------------------------------------------------------------------------------------
+    Base specific
+--------------------------------------------------------------------------------------------------------]]
+SWEP.ExtraText              = ''
 
-	HUD Related functions / enums:
-		CQB_sw, CQB_sh -- Screen width / height
-		CQB_swc, CQB_shc -- Screen center by width / height
+SWEP.SpeedMultiply          = 1
 
-		CQB_ColBG -- Color(0, 0, 0, 200)
-		CQB_ColWH -- Color(255, 255, 255)
 
-		CQB_TextSize(text, font) -- Returns width / height
-		CQB_TextLimit(w, text, font) -- Returns limited text
-		CQB_format(var, max) -- Returns limited int (default 999)
-		CQB_ShadowText(text, font, x, y, align1, align2) -- Just shadowed text
-		CQB_CrossDot() -- Draws dot in center of screen
+--[[------------------------------------------------------------------------------------------------------
+    Replacements
+    You can replace every function but be careful and try not to touch SCK related stuff
+
+    Functions:
+        SWEP:AddDelay(delay) -- Adds Delay for Primary and Secondary attacks
+        SWEP:EmitCustomSound(sound, volume, pitch, chan) -- Emits sound with pitch and volume level
+        SWEP:AddNWVar(type, variable) -- Used in SWEP:AddDataTables(). Automated.
+            (Data types: String, Bool, Float, Int, Vector, Angle, Entity)
+        SWEP:TargetIsABeing(ent) -- Checks entity for being a player / npc / nextbot
+        SWEP:MeleeAttack() -- Does attack
+        SWEP:CheckBackstab(ent) -- Checks if backstab is possible
+
+    Misc:
+        CQB_GetConv(convar, type) -- Returns var's data (types: bool, int, float)
+
+    HUD Related functions / enums:
+        CQB_sw, CQB_sh -- Screen width / height
+        CQB_swc, CQB_shc -- Screen center by width / height
+
+        CQB_ColBG -- Color(0, 0, 0, 220)
+        CQB_ColWH -- Color(255, 255, 255)
+        CQB_ColRd -- Color(255, 0, 0)
+
+        CQB_TextSize(text, font) -- Returns width / height
+        CQB_TextLimit(w, text, font) -- Returns limited text
+        CQB_format(var, max) -- Returns limited int (default 999)
+        CQB_ShadowText(text, font, x, y, align1, align2) -- Just shadowed text
+        CQB_CrossDot() -- Draws dot in center of screen
 --------------------------------------------------------------------------------------------------------]]
 function SWEP:AddDataTables()
-	return
+    return
 end
 
 function SWEP:CustomPrecache()
-	return
+    return
 end
 
 function SWEP:OnInitialize()
-	return
+    return
 end
 
 function SWEP:OnDeploy()
-	return
+    return
 end
 
 function SWEP:OnHolster()
-	return
+    return
 end
 
 function SWEP:WeaponThink()
-	return
+    return
 end
 
 function SWEP:OnPreDrawViewModel(vm)
-	return
+    return
 end
 
 function SWEP:OnPostDrawViewModel(vm)
-	return
+    return
 end
 
 --[[
-	function SWEP:CanPrimaryAttack()
-		return true
-	end
+    function SWEP:CanPrimaryAttack()
+        return true
+    end
 
-	function SWEP:SecondaryAttack()
-		return
-	end
+    function SWEP:SecondaryAttack()
+        return
+    end
 
-	function SWEP:Reload()
-		return
-	end
+    function SWEP:Reload()
+        return
+    end
 
-	function SWEP:DoImpactEffect(tr, dmgtype)
-		if tr.HitSky then return end
+    function SWEP:DoImpactEffect(tr, dmgtype)
+        if tr.HitSky then return end
 
-		if self:TargetIsABeing(tr.Entity) then
-			local ef = EffectData()
-			ef:SetOrigin(tr.HitPos)
+        if self:TargetIsABeing(tr.Entity) then
+            local ef = EffectData()
+            ef:SetOrigin(tr.HitPos)
 
-			util.Effect('BloodImpact', ef, true, true)
-		end
+            util.Effect('BloodImpact', ef, true, true)
+        end
 
-		return true
-	end
+        return true
+    end
 
-	if CLIENT then
-		function SWEP:DrawCustomHUD()
-			return
-		end
+    if CLIENT then
+        function SWEP:DrawCustomHUD()
+            return
+        end
 
-		function SWEP:DrawWeaponSelection(x, y, wide, tall, alpha)
-			CQB_ShadowText(CQB_TextLimit(300, self.PrintName, 'CQBMedium'), 'CQBSmall', x + wide * 0.5, y + tall * 0.5 - 10)
-		end
-	end
+        function SWEP:DrawWeaponSelection(x, y, wide, tall, alpha)
+            CQB_ShadowText(CQB_TextLimit(300, self.PrintName, 'CQBMedium'), 'CQBSmall', x + wide * 0.5, y + tall * 0.5 - 10)
+        end
+    end
 ]]

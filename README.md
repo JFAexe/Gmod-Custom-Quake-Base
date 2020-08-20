@@ -12,9 +12,10 @@ It was designed to feel like old school fps games like Quake / Doom / Dusk.
 * Version 1.4 July 28, 2020: Melee and Zoom base
 * Version 2.0 Aug 2, 2020: Projectile and dual weapons support / Better Melee base with backstabs / Lua shells
 * Version 2.1 Aug 5, 2020: Server options / Spawner entity base / New HUD font
+* Version 2.2 Aug 21, 2020: NPC Support for guns
 
 ## Planned features:
-* NPC support
+* NPC melee support
 * More entities
 
 ##### *If you want to contribute please keep your code clean.*
