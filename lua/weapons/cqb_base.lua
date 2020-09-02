@@ -204,8 +204,8 @@ SWEP.SightsSensitivity      = 0.55
 --[[------------------------------------------------------------------------------------------------------
     Base
 --------------------------------------------------------------------------------------------------------]]
-local render, table, pairs, math = render, table, pairs, math
-local Clamp, Rand, Random, Min   = math.Clamp, math.Rand, math.random, math.min
+local rnd, tbl, pairs, mth = render, table, pairs, math
+local Clamp, Rand, Random, Min, App, Round = mth.Clamp, mth.Rand, mth.random, mth.min, mth.Approach, mth.Round
 
 SWEP.IsCQB      = true -- DO NOT TOUCH
 
@@ -470,10 +470,9 @@ end
 function SWEP:ShootProjectile()
     local owner = self:GetOwner()
     local data  = self.Primary
-    local avec  = owner:GetAimVector()
     local spos  = owner:GetShootPos()
-    local ea =  owner:EyeAngles()
-    local pos = spos + ea:Forward() * 5
+    local ea    =  owner:EyeAngles()
+    local pos   = spos + ea:Forward() * 5
 
     local vel = ea + Angle(Rand(-data.VertSpread, data.VertSpread), Rand(-data.HorizSpread, data.HorizSpread), 0)
     vel = vel:Forward() * self.ProjectileForce
@@ -553,7 +552,7 @@ end
 function SWEP:Think()
     self:WeaponThink()
 
-    if CQB_GetConv('cqb_sv_allow_ammolimit', 'bool') then 
+    if CQB_GetConv('cqb_sv_allow_ammolimit', 'bool') then
         self:LimitAmmo()
     end
 
@@ -588,9 +587,7 @@ function SWEP:BurstThink()
 end
 
 function SWEP:SpinThink()
-    local data = self.Primary
-
-    self.Percent   = math.Round(self.CurSpin / self.MaxSpin * 100)
+    self.Percent   = Round(self.CurSpin / self.MaxSpin * 100)
     self.ExtraText = 'Spin: ' .. self.Percent .. '%'
 
     local FT = FrameTime()
@@ -598,15 +595,15 @@ function SWEP:SpinThink()
     self:SetSpin(self.CurSpin)
 
     if self:GetDelay() > CurTime() then
-        self.CurSpin = math.Approach(self.CurSpin, 0, self.SpinSpd * 0.25 * FT)
+        self.CurSpin = App(self.CurSpin, 0, self.SpinSpd * 0.25 * FT)
 
         return
     end
 
     if self:GetOwner():KeyDown(IN_ATTACK) then
-        self.CurSpin = math.Approach(self.CurSpin, self.MaxSpin, self.SpinSpd * FT)
+        self.CurSpin = App(self.CurSpin, self.MaxSpin, self.SpinSpd * FT)
     else
-        self.CurSpin = math.Approach(self.CurSpin, 0, self.SpinSpd * 0.25 * FT)
+        self.CurSpin = App(self.CurSpin, 0, self.SpinSpd * 0.25 * FT)
     end
 end
 
@@ -616,7 +613,7 @@ function SWEP:ZoomThink()
     local time  = self.SightsTime
     local fov   = self.SightsFov - CQB_GetConv('cqb_extrafov', 'float')
 
-    if owner:KeyDown(IN_ATTACK2) and not (self:GetDelay() > CurTime()) then
+    if owner:KeyDown(IN_ATTACK2) and self:GetDelay() <= CurTime() then
         if not self:GetSights() then
             self:SetSights(true)
             self:EmitCustomSound(zoom.snd, zoom.vol, zoom.pit, CHAN_AUTO)
@@ -673,7 +670,7 @@ SWEP.MuzzleEvents = {
     [5003] = true,
     [5011] = true,
     [5021] = true,
-    [5031] = true 
+    [5031] = true
 }
 
 SWEP.Shells = {}
@@ -707,7 +704,7 @@ function SWEP:FireAnimationEvent(pos, ang, event, name)
     if self:GetOwner():IsNPC() then return end
 
     local vm = self:GetOwner():GetViewModel()
-    local att = self.Dual and self:GetAttach() or math.floor((event - 4991) / 10)
+    local att = self.Dual and self:GetAttach() or mth.floor((event - 4991) / 10)
 
     if self.ShellEvents[event] then
         if self.LuaShells and CQB_GetConv('cqb_shells', 'bool') then
@@ -774,7 +771,7 @@ function SWEP:EmitShell(shell) -- Still trying to add features from previous (fu
     self:MakeShell(shell, att.Pos + dir, ea, dir * (self.ShellSpeed or 120))
 end
 
-function SWEP:MakeShell(shell, pos, ang, vel)
+function SWEP:MakeShell(shelltype, pos, ang, vel)
     local angVel = Vector(0, 0, 0)
 
     vel   = vel or Vector(0, 0, -100)
@@ -786,17 +783,17 @@ function SWEP:MakeShell(shell, pos, ang, vel)
     angVel.y = Random(-500, 500)
     angVel.z = Random(-500, 500)
 
-    local shell      = self.Shells[shell]
+    local shell      = self.Shells[shelltype]
     local time       = 0
     local removetime = CQB_GetConv('cqb_shellstime', 'float')
 
-    local ent = ClientsideModel(shell.model, RENDERGROUP_BOTH) 
+    local ent = ClientsideModel(shell.model, RENDERGROUP_BOTH)
     ent:SetPos(pos)
     ent:PhysicsInitBox(Vector(-0.5, -0.15, -0.5), Vector(0.5, 0.15, 0.5))
     ent:SetAngles(ang)
     ent:SetModelScale(self.ShellScale, 0)
-    ent:SetMoveType(MOVETYPE_VPHYSICS) 
-    ent:SetSolid(SOLID_VPHYSICS) 
+    ent:SetMoveType(MOVETYPE_VPHYSICS)
+    ent:SetSolid(SOLID_VPHYSICS)
     ent:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
 
     local phys = ent:GetPhysicsObject()
@@ -880,7 +877,7 @@ function SWEP:GetViewModelPosition(pos, ang)
     local CalcVel = Clamp(owner:GetVelocity():Length() / 600, 0 , 3) / self.SpeedMultiply
 
     if owner:OnGround() then
-        VMAnimation = Lerp(FT * 4, VMAnimation, math.sin(CurTime() * 8) * CalcVel)
+        VMAnimation = Lerp(FT * 4, VMAnimation, mth.sin(CurTime() * 8) * CalcVel)
     else
         VMAnimation = Lerp(0.1, VMAnimation, 0)
     end
@@ -898,12 +895,12 @@ function SWEP:GetViewModelPosition(pos, ang)
 end
 
 function SWEP:PreDrawViewModel(vm)
-    render.PushFilterMag(TEXFILTER.POINT) -- retro
-    render.PushFilterMin(TEXFILTER.POINT) -- ish
+    rnd.PushFilterMag(TEXFILTER.POINT) -- retro
+    rnd.PushFilterMin(TEXFILTER.POINT) -- ish
 
-    render.SuppressEngineLighting(self.LightedViewmodel)
+    rnd.SuppressEngineLighting(self.LightedViewmodel)
 
-    if not self.ShowViewModel then render.SetBlend(0) end
+    if not self.ShowViewModel then rnd.SetBlend(0) end
 
     self:OnPreDrawViewModel(vm)
 end
@@ -913,11 +910,11 @@ function SWEP:OnPreDrawViewModel(vm)
 end
 
 function SWEP:PostDrawViewModel(vm)
-    render.SuppressEngineLighting(false)
-    render.SetBlend(1)
+    rnd.SuppressEngineLighting(false)
+    rnd.SetBlend(1)
 
-    render.PopFilterMag()
-    render.PopFilterMin()
+    rnd.PopFilterMag()
+    rnd.PopFilterMin()
 
     self:OnPostDrawViewModel(vm)
 end
@@ -960,12 +957,10 @@ if CLIENT then
     function SWEP:DrawCrosshair()
         if not CQB_GetConv('cqb_hud_crosshair', 'bool') then return end
 
-        local DrawColor, DrawRect = surface.SetDrawColor, surface.DrawRect
-
         local styles = CQB_CrosshairStyles
         local cross  = ' '
 
-        for i = 0, math.Round(self.Primary.HorizSpread * 2) do cross = cross .. ' ' end
+        for i = 0, Round(self.Primary.HorizSpread * 2) do cross = cross .. ' ' end
 
         local _style = CQB_GetConv('cqb_hud_crosshairstyle', 'int')
         local _stll  = styles.l[_style]
@@ -1005,9 +1000,9 @@ if CLIENT then
         local cus  = CQB_sh - CQB_shc * (_y + 0.3)
         local top  = CQB_sh - CQB_shc * (_y + 0.22)
         local mid  = CQB_sh - CQB_shc * (_y + 0.1)
-        local bot  = CQB_sh - CQB_shc * (_y)
+        local bot  = CQB_sh - CQB_shc * _y
 
-        local healthcolor = CQB_ColorFade(CQB_ColWH, CQB_ColRd, math.Clamp(owner:Health() / owner:GetMaxHealth(), 0, 1))
+        local healthcolor = CQB_ColorFade(CQB_ColWH, CQB_ColRd, Clamp(owner:Health() / owner:GetMaxHealth(), 0, 1))
 
         CQB_ShadowText('Armor', 'CQBSmall', lcl, top, nil, TEXT_ALIGN_TOP)
         CQB_ShadowText(CQB_format(owner:Armor()), 'CQBLarge', lcl, mid)
@@ -1092,9 +1087,9 @@ function SWEP:InitSCK()
     local owner = self:GetOwner()
 
     if CLIENT then
-        self.VElements = table.FullCopy(self.VElements)
-        self.WElements = table.FullCopy(self.WElements)
-        self.ViewModelBoneMods = table.FullCopy(self.ViewModelBoneMods)
+        self.VElements = tbl.FullCopy(self.VElements)
+        self.WElements = tbl.FullCopy(self.WElements)
+        self.ViewModelBoneMods = tbl.FullCopy(self.ViewModelBoneMods)
         self:CreateModels(self.VElements)
         self:CreateModels(self.WElements)
 
@@ -1136,9 +1131,9 @@ if CLIENT then
 
             for k, v in pairs(self.VElements) do
                 if (v.type == 'Model') then
-                    table.insert(self.vRenderOrder, 1, k)
+                    tbl.insert(self.vRenderOrder, 1, k)
                 elseif (v.type == 'Sprite' or v.type == 'Quad') then
-                    table.insert(self.vRenderOrder, k)
+                    tbl.insert(self.vRenderOrder, k)
                 end
             end
         end
@@ -1187,22 +1182,22 @@ if CLIENT then
                 end
 
                 if (v.surpresslightning) then
-                    render.SuppressEngineLighting(true)
+                    rnd.SuppressEngineLighting(true)
                 end
 
-                render.SetColorModulation(v.color.r / 255, v.color.g / 255, v.color.b / 255)
-                render.SetBlend(v.color.a / 255)
+                rnd.SetColorModulation(v.color.r / 255, v.color.g / 255, v.color.b / 255)
+                rnd.SetBlend(v.color.a / 255)
                 model:DrawModel()
-                render.SetBlend(1)
-                render.SetColorModulation(1, 1, 1)
+                rnd.SetBlend(1)
+                rnd.SetColorModulation(1, 1, 1)
 
                 if (v.surpresslightning) then
-                    render.SuppressEngineLighting(false)
+                    rnd.SuppressEngineLighting(false)
                 end
             elseif (v.type == 'Sprite' and sprite) then
                 local drawpos = pos + ang:Forward() * v.pos.x + ang:Right() * v.pos.y + ang:Up() * v.pos.z
-                render.SetMaterial(sprite)
-                render.DrawSprite(drawpos, v.size.x, v.size.y, v.color)
+                rnd.SetMaterial(sprite)
+                rnd.DrawSprite(drawpos, v.size.x, v.size.y, v.color)
             elseif (v.type == 'Quad' and v.draw_func) then
                 local drawpos = pos + ang:Forward() * v.pos.x + ang:Right() * v.pos.y + ang:Up() * v.pos.z
                 ang:RotateAroundAxis(ang:Up(), v.angle.y)
@@ -1227,9 +1222,9 @@ if CLIENT then
 
             for k, v in pairs(self.WElements) do
                 if (v.type == 'Model') then
-                    table.insert(self.wRenderOrder, 1, k)
+                    tbl.insert(self.wRenderOrder, 1, k)
                 elseif (v.type == 'Sprite' or v.type == 'Quad') then
-                    table.insert(self.wRenderOrder, k)
+                    tbl.insert(self.wRenderOrder, k)
                 end
             end
         end
@@ -1288,22 +1283,22 @@ if CLIENT then
                 end
 
                 if (v.surpresslightning) then
-                    render.SuppressEngineLighting(true)
+                    rnd.SuppressEngineLighting(true)
                 end
 
-                render.SetColorModulation(v.color.r / 255, v.color.g / 255, v.color.b / 255)
-                render.SetBlend(v.color.a / 255)
+                rnd.SetColorModulation(v.color.r / 255, v.color.g / 255, v.color.b / 255)
+                rnd.SetBlend(v.color.a / 255)
                 model:DrawModel()
-                render.SetBlend(1)
-                render.SetColorModulation(1, 1, 1)
+                rnd.SetBlend(1)
+                rnd.SetColorModulation(1, 1, 1)
 
                 if (v.surpresslightning) then
-                    render.SuppressEngineLighting(false)
+                    rnd.SuppressEngineLighting(false)
                 end
             elseif (v.type == 'Sprite' and sprite) then
                 local drawpos = pos + ang:Forward() * v.pos.x + ang:Right() * v.pos.y + ang:Up() * v.pos.z
-                render.SetMaterial(sprite)
-                render.DrawSprite(drawpos, v.size.x, v.size.y, v.color)
+                rnd.SetMaterial(sprite)
+                rnd.DrawSprite(drawpos, v.size.x, v.size.y, v.color)
             elseif (v.type == 'Quad' and v.draw_func) then
                 local drawpos = pos + ang:Forward() * v.pos.x + ang:Right() * v.pos.y + ang:Up() * v.pos.z
                 ang:RotateAroundAxis(ang:Up(), v.angle.y)
@@ -1462,13 +1457,13 @@ if CLIENT then
         end
     end
 
-    function table.FullCopy(tab)
+    function tbl.FullCopy(tab)
         if (not tab) then return nil end
         local res = {}
 
         for k, v in pairs(tab) do
             if (type(v) == 'table') then
-                res[k] = table.FullCopy(v)
+                res[k] = tbl.FullCopy(v)
             elseif (type(v) == 'Vector') then
                 res[k] = Vector(v.x, v.y, v.z)
             elseif (type(v) == 'Angle') then

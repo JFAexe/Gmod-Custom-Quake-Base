@@ -264,7 +264,7 @@ function SWEP:CheckBackstab(ent)
     entang.p     = 0
     entang       = entang:Forward()
 
-    return entang:DotProduct(ownang) >= 0.7
+    return entang:Dot(ownang) >= 0.7
 end
 
 function SWEP:Think()

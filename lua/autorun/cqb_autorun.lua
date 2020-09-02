@@ -76,7 +76,7 @@ hook.Add('SetupMove', 'CQB_SetupMove', function(ply, cmd)
 
     if not ply:Alive() then return end
 
-    wep = ply:GetActiveWeapon()
+    local wep = ply:GetActiveWeapon()
 
     if not (IsValid(wep) and wep.IsCQB) then return end
 
@@ -94,7 +94,7 @@ end)
 hook.Add('Move', 'CQB_Move', function(ply, move)
     if not CQB_GetConv('cqb_sv_allow_customspeed', 'bool') then return end
 
-    wep = ply:GetActiveWeapon()
+    local wep = ply:GetActiveWeapon()
 
     if not (IsValid(wep) and wep.IsCQB) then return end
 
@@ -200,7 +200,7 @@ if CLIENT then
     end
 
     function CQB_format(var, max)
-        local max = max or 999
+        max = max or 999
 
         return (var > max and max) or var
     end
@@ -228,8 +228,6 @@ if CLIENT then
         DrawRect(CQB_swc - 2, CQB_shc - 2, 3, 3)
     end
 
-    local ply, wep
-
     local HideElements = { -- fuck everything
         ['CHudZoom']                  = true,
         ['CHudAmmo']                  = true,
@@ -244,7 +242,9 @@ if CLIENT then
     }
 
     hook.Add('HUDShouldDraw', 'cqb_hud_hide', function(name)
-        ply = LocalPlayer()
+        local ply = LocalPlayer()
+        local wep
+
 
         if IsValid(ply) and ply:Alive() then
             wep = ply:GetActiveWeapon()
