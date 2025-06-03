@@ -273,6 +273,7 @@ function SWEP:Precache()
     utlps(data.DryfireData.snd)
     utlps(data.SpinData.snd)
     utlps(data.ZoomData.snd)
+    utlps(data.DeployData.snd)
 
     utlpm(self.ViewModel)
     utlpm(self.WorldModel)
@@ -307,9 +308,12 @@ end
 
 function SWEP:Deploy()
     self:SendWeaponAnim(ACT_VM_DRAW)
+    local dpl  = self.Primary.DeployData
 
     local delay = CurTime() + self:GetOwner():GetViewModel():SequenceDuration()
-
+    
+    self:EmitCustomSound(dpl.snd, dpl.vol, dpl.pit, CHAN_AUTO)
+    
     self:AddDelay(delay)
 
     self:SetDelay(delay)
